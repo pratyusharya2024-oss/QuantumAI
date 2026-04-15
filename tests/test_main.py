@@ -2,7 +2,7 @@ import unittest
 
 class TestMain(unittest.TestCase):
     """Test cases for the main physics modeler"""
-    
+     
     def test_import(self):
         """Test that main module can be imported"""
         try:
