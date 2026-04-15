@@ -56,8 +56,8 @@ physics-modeler/
 │ ├── kinematics.py
 │ ├── gravitation.py
 | ├── energetics.py
-| ├── quantum mecahnics.py
-| └── termodynamics.py
+| ├── quantum_mecahnics.py
+| └── thermodynamics.py
 ├── visualization/
 │ └── plotter.py # Graph generation
 ├── data/
