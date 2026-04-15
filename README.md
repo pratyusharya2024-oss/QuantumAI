@@ -80,6 +80,10 @@ physics-modeler/
 - Graphs generated using Matplotlib  
 
 ---
+![Python Version](https://img.shields.io/badge/python-3.8+-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Status](https://img.shields.io/badge/status-active-success)
+![Code Quality](https://img.shields.io/badge/code%20quality-good-brightgreen)
 
 ## Getting Started
 
