@@ -133,7 +133,7 @@ def wasted_energy(total_input, useful_output):
 def energy_conversion_chain(input_energy, *efficiencies):
     """
     Computes output energy through a chain of energy conversions.
-    Each efficiency is a percentage (0–100).
+    Each efficiency is a percentage (0-100).
     e.g., energy_conversion_chain(1000, 80, 70, 90)
     """
     energy = input_energy
