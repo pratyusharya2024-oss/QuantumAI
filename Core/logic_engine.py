@@ -1,8 +1,8 @@
+from ast import Import
 from typing import Optional
-from sympy import symbols, Eq, solve, diff, integrate, simplify, latex, sympify, Symbol
+from sympy import im, symbols, Eq, solve, diff, integrate, simplify, latex, sympify, Symbol
 from sympy import Function, Symbol
 from sympy.core.expr import Expr
-
 
 class LogicEngine:
 

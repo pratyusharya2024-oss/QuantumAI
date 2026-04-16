@@ -8,7 +8,7 @@ Author: [Your Name]
 # modules kinematics.py
 from sympy import symbol, Eq, symbols
 from Core import Logic_Engine
-from core.logic_engine.py import Logic_Engine
+
 
 def register(engine: Logic_Engine) -> None:
     u, v, a, t, s,= symbols('u v a t s ')
