@@ -28,7 +28,8 @@ jobs:
         
     - name: Run tests
       run: |
-        python -m pytest tests/ -v --cov=Core --cov=Modules --cov-report=xml
+        pytest Core/ Modules/ -v --cov=Core --cov=Modules --cov-report=xml
+       
     
     - name: Check code with pylint
       run: |
