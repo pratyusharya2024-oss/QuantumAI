@@ -1,0 +1,3 @@
+#Here we get specified formulas for the field of Thermodynamics.
+
+print("This Problem is from the field of Thermodynamics")
