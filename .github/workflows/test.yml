@@ -26,10 +26,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
         pip install pytest pytest-cov codecov
+        pip install pylint
     
     - name: Run tests
       run: |
-        python - m pytest tests/ -v --cov=Core --cov=Modules --cov-report=xml
+        python -m pytest tests/ -v --cov=Core --cov=Modules --cov-report=xml
     
     - name: Check code with pylint
       run: |
