@@ -23,12 +23,13 @@ jobs:
     
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+       python -m pip install --upgrade pip
+       pip install pytest pytest-cov
         
     - name: Run tests
       run: |
-        python -m pytest tests/ -v --cov=Core --cov=Modules --cov-report=xml
+        python -m pytest Core/ Modules/ -v --cov=Core --cov=Modules --cov-report=xml
+       
     
     - name: Check code with pylint
       run: |
