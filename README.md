@@ -49,20 +49,20 @@ It is built for students, researchers, and developers who want to explore physic
 
 ## Project Structure
 physics-modeler/
-├── core/
-│ ├── logic_engine.py # Symbolic derivations (SymPy)
-│ └── solver.py # Numerical computations (NumPy)
-├── modules/
-│ ├── kinematics.py
-│ ├── gravitation.py
-| ├── energetics.py
-| ├── quantum_mecahnics.py
-| └── thermodynamics.py
-├── visualization/
-│ └── plotter.py # Graph generation
-├── data/
-│ └── (CSV outputs/logs)
-├── main.py # Entry point
+  core/
+    logic_engine.py # Symbolic derivations (SymPy)
+    solver.py # Numerical computations (NumPy)
+  modules/
+    kinematics.py
+    gravitation.py
+    energetics.py
+    quantum_mecahnics.py
+    thermodynamics.py
+  visualization/
+    plotter.py # Graph generation
+  data/
+    (CSV outputs/logs)
+  main.py # Entry point
 ---
 
 ## How It Works
