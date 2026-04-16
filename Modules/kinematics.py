@@ -5,6 +5,15 @@ Levels: Basic → Advanced
 Author: [Your Name]
 """
 
+# modules kinematics.py
+from sympy import symbol, Eq, symbols
+from core.logic_engine import LogicEngine
+
+def register(engine: LogicEngine) -> None:
+    u, v, a, t, s,= symbols('u v a t s ')
+    engine.register_formula('velocity' , Eq(v, u + a * t))
+    engine.register_formula('displacement' , Eq(s, u * t + (a*t**2)/2))
+    engine.register_formula('final_velocity_squared' , Eq(v**2, u**2 +2*a*s))
 from __future__ import annotations
 from pathlib import Path
 import math
