@@ -36,6 +36,14 @@ class LogicEngine:
 
     def list_formulas(self) -> list[str]:
         return list(self._formula_registry.keys())
+    
+    def select_formula(self, known_symbols: set[str], target: str) -> str:
+        all_vars = known_symbols | {target}
+        for name, equation in self._formula_registry.items():
+            formula_symbols = {str(s) for s in equation.free_symbols}
+            if formula_symbols.issubset(all_vars):
+                return name
+        raise ValueError(f"No registered formula matches variables: {all_vars}")
 
     # ------------------------------------------------------------------
     # Core symbolic operations
