@@ -1,3 +1,629 @@
-#Here we get specified formulas for the field of Quantum mechanics.
+"""
+quantum_mechanics.py
+====================
+Physics Module: Quantum Mechanics
+Covers: Planck's theory, Photoelectric effect, de Broglie, Bohr model,
+        Heisenberg uncertainty, Schrodinger (conceptual), Wave functions,
+        Nuclear physics basics, Radioactive decay
+Levels: Basic → Advanced
+Author: [Your Name]
+"""
 
-print("This Problem is from the field of Quantum mechanics")
+import math
+import numpy as np
+import pandas as pd
+
+
+# ─────────────────────────────────────────────
+# CONSTANTS
+# ─────────────────────────────────────────────
+
+h     = 6.626e-34       # Planck's constant (J·s)
+hbar  = h / (2 * math.pi)  # Reduced Planck's constant (J·s)
+c     = 3.0e8           # Speed of light (m/s)
+e     = 1.602e-19       # Elementary charge (C)
+m_e   = 9.109e-31       # Electron mass (kg)
+m_p   = 1.673e-27       # Proton mass (kg)
+m_n   = 1.675e-27       # Neutron mass (kg)
+k_B   = 1.381e-23       # Boltzmann constant (J/K)
+a_0   = 5.292e-11       # Bohr radius (m)
+E_H   = 13.6            # Hydrogen ground state energy (eV)
+N_A   = 6.022e23        # Avogadro's number
+
+
+# ─────────────────────────────────────────────
+# UNIT CONVERSIONS
+# ─────────────────────────────────────────────
+
+def eV_to_joules(eV):
+    """Convert electron-volts to Joules: J = eV × 1.602×10⁻¹⁹"""
+    return eV * e
+
+
+def joules_to_eV(joules):
+    """Convert Joules to electron-volts"""
+    return joules / e
+
+
+def wavelength_to_frequency(wavelength):
+    """f = c / λ"""
+    if wavelength == 0:
+        raise ValueError("Wavelength cannot be zero.")
+    return c / wavelength
+
+
+def frequency_to_wavelength(frequency):
+    """λ = c / f"""
+    if frequency == 0:
+        raise ValueError("Frequency cannot be zero.")
+    return c / frequency
+
+
+def wavelength_to_energy(wavelength):
+    """E = hc / λ  (returns Joules)"""
+    if wavelength == 0:
+        raise ValueError("Wavelength cannot be zero.")
+    return h * c / wavelength
+
+
+def energy_to_wavelength(energy_joules):
+    """λ = hc / E"""
+    if energy_joules == 0:
+        raise ValueError("Energy cannot be zero.")
+    return h * c / energy_joules
+
+
+# ─────────────────────────────────────────────
+# PLANCK'S QUANTUM THEORY
+# ─────────────────────────────────────────────
+
+def photon_energy_from_frequency(frequency):
+    """
+    Planck's relation: E = h * f
+    Returns energy in Joules.
+    """
+    return h * frequency
+
+
+def photon_energy_from_wavelength(wavelength):
+    """
+    E = hc / λ
+    Returns energy in Joules.
+    """
+    return h * c / wavelength
+
+
+def photon_momentum(wavelength):
+    """
+    Photon momentum: p = h / λ
+    """
+    if wavelength == 0:
+        raise ValueError("Wavelength cannot be zero.")
+    return h / wavelength
+
+
+def photon_frequency_from_energy(energy_joules):
+    """f = E / h"""
+    return energy_joules / h
+
+
+def number_of_photons(total_energy, frequency):
+    """
+    Number of photons: n = E_total / (h * f)
+    """
+    E_photon = photon_energy_from_frequency(frequency)
+    if E_photon == 0:
+        raise ValueError("Photon energy cannot be zero.")
+    return total_energy / E_photon
+
+
+# ─────────────────────────────────────────────
+# PHOTOELECTRIC EFFECT
+# ─────────────────────────────────────────────
+
+def photoelectric_max_ke(frequency, work_function_eV):
+    """
+    Einstein's photoelectric equation.
+    KE_max = hf - φ
+    work_function_eV: work function in eV
+    Returns KE_max in Joules (can be negative = no emission).
+    """
+    phi = eV_to_joules(work_function_eV)
+    return h * frequency - phi
+
+
+def threshold_frequency(work_function_eV):
+    """
+    Minimum frequency for photoelectric emission.
+    f₀ = φ / h
+    """
+    phi = eV_to_joules(work_function_eV)
+    return phi / h
+
+
+def threshold_wavelength(work_function_eV):
+    """
+    Maximum wavelength for photoelectric emission.
+    λ₀ = hc / φ
+    """
+    phi = eV_to_joules(work_function_eV)
+    return h * c / phi
+
+
+def stopping_potential(frequency, work_function_eV):
+    """
+    Stopping potential: V_s = KE_max / e
+    Returns voltage in Volts.
+    """
+    ke = photoelectric_max_ke(frequency, work_function_eV)
+    if ke <= 0:
+        return 0.0  # No emission
+    return ke / e
+
+
+def is_photoelectric_emission_possible(frequency, work_function_eV):
+    """
+    Returns True if emission occurs (hf > φ), else False.
+    """
+    phi = eV_to_joules(work_function_eV)
+    return h * frequency > phi
+
+
+# ─────────────────────────────────────────────
+# DE BROGLIE WAVE-PARTICLE DUALITY
+# ─────────────────────────────────────────────
+
+def de_broglie_wavelength(mass, velocity):
+    """
+    de Broglie wavelength: λ = h / (mv)
+    """
+    if mass == 0 or velocity == 0:
+        raise ValueError("Mass and velocity must be non-zero.")
+    return h / (mass * velocity)
+
+
+def de_broglie_wavelength_from_ke(mass, kinetic_energy_J):
+    """
+    λ = h / sqrt(2 * m * KE)
+    """
+    return h / math.sqrt(2 * mass * kinetic_energy_J)
+
+
+def de_broglie_wavelength_electron(voltage):
+    """
+    de Broglie wavelength of electron accelerated through voltage V.
+    λ = h / sqrt(2 * m_e * eV)
+    """
+    ke = e * voltage
+    return de_broglie_wavelength_from_ke(m_e, ke)
+
+
+def matter_wave_frequency(total_energy_J):
+    """
+    Matter wave frequency: f = E / h
+    """
+    return total_energy_J / h
+
+
+def phase_velocity(wavelength, mass, velocity):
+    """
+    Phase velocity of matter wave: v_phase = E / p = (hf) / (h/λ) = c²/v
+    For non-relativistic: v_phase = E/p
+    """
+    p = mass * velocity
+    E = 0.5 * mass * velocity ** 2
+    return E / p
+
+
+# ─────────────────────────────────────────────
+# BOHR MODEL OF HYDROGEN ATOM
+# ─────────────────────────────────────────────
+
+def bohr_energy_level(n, Z=1):
+    """
+    Energy of nth level in hydrogen-like atom.
+    E_n = -13.6 * Z² / n²  (in eV)
+    Z: atomic number (default 1 = hydrogen)
+    """
+    if n <= 0:
+        raise ValueError("Principal quantum number n must be positive integer.")
+    return -E_H * Z ** 2 / n ** 2
+
+
+def bohr_radius_level(n, Z=1):
+    """
+    Radius of nth Bohr orbit.
+    r_n = a₀ * n² / Z
+    """
+    return a_0 * n ** 2 / Z
+
+
+def bohr_orbital_velocity(n, Z=1):
+    """
+    Electron velocity in nth Bohr orbit.
+    v_n = Z * e² / (n * h_bar * 4πε₀) ≈ 2.19×10⁶ * Z/n m/s
+    """
+    return 2.187e6 * Z / n
+
+
+def photon_energy_transition(n_initial, n_final, Z=1):
+    """
+    Energy of photon emitted/absorbed during transition.
+    ΔE = E_final - E_initial  (negative = emission, positive = absorption)
+    Returns energy in eV.
+    """
+    return bohr_energy_level(n_final, Z) - bohr_energy_level(n_initial, Z)
+
+
+def photon_wavelength_transition(n_initial, n_final, Z=1):
+    """
+    Wavelength of photon from energy level transition.
+    Uses E = hc/λ  →  λ = hc / |ΔE|
+    Returns wavelength in meters.
+    """
+    delta_E_eV = abs(photon_energy_transition(n_initial, n_final, Z))
+    if delta_E_eV == 0:
+        raise ValueError("No transition — same energy levels.")
+    delta_E_J = eV_to_joules(delta_E_eV)
+    return h * c / delta_E_J
+
+
+def rydberg_wavelength(n1, n2, Z=1):
+    """
+    Rydberg formula: 1/λ = R_H * Z² * (1/n1² - 1/n2²)
+    R_H = 1.097×10⁷ m⁻¹
+    n1 < n2 for emission series.
+    Returns wavelength in meters.
+    """
+    R_H = 1.097e7
+    if n1 >= n2:
+        raise ValueError("n1 must be less than n2.")
+    inv_lambda = R_H * Z ** 2 * (1 / n1 ** 2 - 1 / n2 ** 2)
+    return 1 / inv_lambda
+
+
+def spectral_series_name(n_final):
+    """Returns the name of hydrogen spectral series based on final level."""
+    series = {
+        1: "Lyman (UV)",
+        2: "Balmer (Visible)",
+        3: "Paschen (IR)",
+        4: "Brackett (IR)",
+        5: "Pfund (Far IR)"
+    }
+    return series.get(n_final, f"Series ending at n={n_final}")
+
+
+def ionization_energy(Z=1):
+    """
+    Ionization energy from ground state (n=1).
+    E_ion = 13.6 * Z²  (eV)
+    """
+    return E_H * Z ** 2
+
+
+# ─────────────────────────────────────────────
+# HEISENBERG UNCERTAINTY PRINCIPLE
+# ─────────────────────────────────────────────
+
+def min_uncertainty_momentum(delta_x):
+    """
+    Heisenberg: Δx * Δp ≥ ℏ/2
+    Returns minimum Δp given Δx.
+    """
+    if delta_x == 0:
+        raise ValueError("Position uncertainty cannot be zero.")
+    return hbar / (2 * delta_x)
+
+
+def min_uncertainty_position(delta_p):
+    """
+    Returns minimum Δx given Δp.
+    """
+    if delta_p == 0:
+        raise ValueError("Momentum uncertainty cannot be zero.")
+    return hbar / (2 * delta_p)
+
+
+def min_uncertainty_energy(delta_t):
+    """
+    Energy-Time Uncertainty: ΔE * Δt ≥ ℏ/2
+    Returns minimum ΔE given Δt.
+    """
+    if delta_t == 0:
+        raise ValueError("Time uncertainty cannot be zero.")
+    return hbar / (2 * delta_t)
+
+
+def min_uncertainty_time(delta_E):
+    """Returns minimum Δt given ΔE."""
+    if delta_E == 0:
+        raise ValueError("Energy uncertainty cannot be zero.")
+    return hbar / (2 * delta_E)
+
+
+def uncertainty_product_check(delta_x, delta_p):
+    """
+    Checks if Heisenberg condition is satisfied.
+    Returns True if Δx*Δp ≥ ℏ/2, else False.
+    """
+    return delta_x * delta_p >= hbar / 2
+
+
+# ─────────────────────────────────────────────
+# PARTICLE IN A BOX (Infinite Square Well)
+# ─────────────────────────────────────────────
+
+def particle_in_box_energy(n, length, mass=m_e):
+    """
+    Energy levels of particle in 1D infinite square well.
+    E_n = (n² * π² * ℏ²) / (2 * m * L²)
+    n: quantum number (1, 2, 3, ...)
+    length: box length in meters
+    """
+    if n <= 0:
+        raise ValueError("Quantum number n must be positive.")
+    return (n ** 2 * math.pi ** 2 * hbar ** 2) / (2 * mass * length ** 2)
+
+
+def particle_in_box_wavelength(n, length):
+    """
+    Standing wave condition: λ_n = 2L / n
+    """
+    return 2 * length / n
+
+
+def particle_in_box_momentum(n, length):
+    """
+    Momentum of particle in box: p_n = nπℏ / L
+    """
+    return n * math.pi * hbar / length
+
+
+def particle_in_box_energy_gap(n1, n2, length, mass=m_e):
+    """
+    Energy difference between two levels in the box.
+    ΔE = E_n2 - E_n1
+    """
+    return (particle_in_box_energy(n2, length, mass) -
+            particle_in_box_energy(n1, length, mass))
+
+
+# ─────────────────────────────────────────────
+# NUCLEAR PHYSICS — RADIOACTIVE DECAY
+# ─────────────────────────────────────────────
+
+def decay_constant(half_life):
+    """
+    Decay constant: λ = ln(2) / t_(1/2)
+    """
+    if half_life == 0:
+        raise ValueError("Half-life cannot be zero.")
+    return math.log(2) / half_life
+
+
+def half_life_from_decay_constant(lambda_decay):
+    """t_(1/2) = ln(2) / λ"""
+    if lambda_decay == 0:
+        raise ValueError("Decay constant cannot be zero.")
+    return math.log(2) / lambda_decay
+
+
+def remaining_nuclei(N_initial, half_life, time):
+    """
+    N(t) = N₀ * (1/2)^(t / t_(1/2))
+    """
+    return N_initial * (0.5 ** (time / half_life))
+
+
+def remaining_nuclei_decay_constant(N_initial, lambda_decay, time):
+    """
+    N(t) = N₀ * e^(-λt)
+    """
+    return N_initial * math.exp(-lambda_decay * time)
+
+
+def activity(N, lambda_decay):
+    """
+    Activity: A = λ * N  (decays per second, in Becquerels)
+    """
+    return lambda_decay * N
+
+
+def activity_at_time(N_initial, lambda_decay, time):
+    """
+    Activity at time t: A(t) = A₀ * e^(-λt)
+    """
+    A0 = activity(N_initial, lambda_decay)
+    return A0 * math.exp(-lambda_decay * time)
+
+
+def time_for_fraction_remaining(half_life, fraction):
+    """
+    Time for activity/nuclei to reduce to a given fraction.
+    t = t_(1/2) * log2(1/fraction)
+    fraction: e.g., 0.25 means 25% remaining
+    """
+    if fraction <= 0 or fraction > 1:
+        raise ValueError("Fraction must be between 0 and 1.")
+    return half_life * math.log2(1 / fraction)
+
+
+def mass_remaining(m_initial, half_life, time):
+    """
+    Remaining mass: m(t) = m₀ * (1/2)^(t/t_(1/2))
+    """
+    return m_initial * (0.5 ** (time / half_life))
+
+
+def binding_energy(Z, N, atomic_mass_u):
+    """
+    Nuclear binding energy.
+    BE = (Z*m_p + N*m_n - M_nucleus) * c²
+    atomic_mass_u: measured atomic mass in atomic mass units (u)
+    1 u = 931.5 MeV/c²
+    Returns binding energy in MeV.
+    """
+    mass_protons  = Z * 1.007276  # u
+    mass_neutrons = N * 1.008665  # u
+    mass_defect   = mass_protons + mass_neutrons - atomic_mass_u
+    return mass_defect * 931.5    # MeV
+
+
+def binding_energy_per_nucleon(Z, N, atomic_mass_u):
+    """
+    BE per nucleon = Total BE / (Z + N)
+    """
+    A = Z + N
+    return binding_energy(Z, N, atomic_mass_u) / A
+
+
+def mass_energy_equivalence(mass_kg):
+    """
+    Einstein's E = mc²
+    Returns energy in Joules.
+    """
+    return mass_kg * c ** 2
+
+
+def mass_defect_to_energy_MeV(mass_defect_u):
+    """
+    Converts mass defect in atomic mass units to energy in MeV.
+    1 u = 931.5 MeV/c²
+    """
+    return mass_defect_u * 931.5
+
+
+# ─────────────────────────────────────────────
+# COMPTON SCATTERING
+# ─────────────────────────────────────────────
+
+def compton_wavelength_shift(angle_deg):
+    """
+    Compton shift: Δλ = (h / m_e * c) * (1 - cos θ)
+    Returns wavelength shift in meters.
+    """
+    lambda_c = h / (m_e * c)   # Compton wavelength ~ 2.426×10⁻¹² m
+    angle_rad = math.radians(angle_deg)
+    return lambda_c * (1 - math.cos(angle_rad))
+
+
+def compton_scattered_wavelength(incident_wavelength, angle_deg):
+    """
+    λ' = λ + Δλ
+    """
+    return incident_wavelength + compton_wavelength_shift(angle_deg)
+
+
+def compton_scattered_energy(incident_wavelength, angle_deg):
+    """
+    Energy of scattered photon after Compton scattering.
+    Returns in Joules.
+    """
+    lam_prime = compton_scattered_wavelength(incident_wavelength, angle_deg)
+    return h * c / lam_prime
+
+
+# ─────────────────────────────────────────────
+# SIMULATION — Radioactive Decay (NumPy)
+# ─────────────────────────────────────────────
+
+def simulate_radioactive_decay(N_initial, half_life, total_time, steps=1000):
+    """
+    Simulates radioactive decay over time.
+    Returns DataFrame with time, nuclei remaining, activity.
+    """
+    lam = decay_constant(half_life)
+    t   = np.linspace(0, total_time, steps)
+    N   = N_initial * np.exp(-lam * t)
+    A   = lam * N
+
+    df = pd.DataFrame({
+        "time"              : t,
+        "nuclei remaining"  : N,
+        "activity (Bq)"     : A
+    })
+    return df
+
+
+def simulate_energy_levels_hydrogen(n_max=10, Z=1):
+    """
+    Simulates and returns energy levels and orbital radii for hydrogen-like atom.
+    Returns DataFrame with n, energy (eV), radius (m), wavelength to n=1 (m).
+    """
+    levels = []
+    for n in range(1, n_max + 1):
+        E  = bohr_energy_level(n, Z)
+        r  = bohr_radius_level(n, Z)
+        if n > 1:
+            lam = photon_wavelength_transition(n, 1, Z)
+        else:
+            lam = None
+        levels.append({
+            "n"                         : n,
+            "energy (eV)"               : E,
+            "orbital radius (m)"        : r,
+            "emission wavelength (m)"   : lam
+        })
+    df = pd.DataFrame(levels)
+    return df
+
+
+def save_simulation_to_csv(df, filename="quantum_simulation.csv"):
+    """Saves simulation DataFrame to CSV in data/ folder."""
+    path = f"data/{filename}"
+    df.to_csv(path, index=False)
+    print(f"Simulation saved to {path}")
+
+
+# ─────────────────────────────────────────────
+# SUMMARY PRINT UTILITIES
+# ─────────────────────────────────────────────
+
+def hydrogen_spectrum_summary(n_initial, Z=1):
+    """Prints all emission lines from a given level down to n=1."""
+    print("=" * 52)
+    print(f"   HYDROGEN EMISSION SPECTRUM (n={n_initial} → lower)")
+    print("=" * 52)
+    for n_final in range(1, n_initial):
+        delta_E = abs(photon_energy_transition(n_initial, n_final, Z))
+        lam     = photon_wavelength_transition(n_initial, n_final, Z)
+        series  = spectral_series_name(n_final)
+        print(f"  n={n_initial} → n={n_final}  |  ΔE={delta_E:.4f} eV  |  λ={lam*1e9:.4f} nm  |  {series}")
+    print("=" * 52)
+
+
+def radioactive_summary(N_initial, half_life, time):
+    """Prints decay status at a given time."""
+    lam    = decay_constant(half_life)
+    N_left = remaining_nuclei(N_initial, half_life, time)
+    A_now  = activity(N_left, lam)
+    frac   = N_left / N_initial * 100
+    print("=" * 45)
+    print("      RADIOACTIVE DECAY SUMMARY")
+    print("=" * 45)
+    print(f"  Initial Nuclei  : {N_initial:.3e}")
+    print(f"  Half-life       : {half_life} s")
+    print(f"  Time elapsed    : {time} s")
+    print("-" * 45)
+    print(f"  Remaining       : {N_left:.3e}  ({frac:.2f}%)")
+    print(f"  Activity        : {A_now:.3e} Bq")
+    print("=" * 45)
+
+
+def photoelectric_summary(frequency, work_function_eV):
+    """Prints photoelectric effect summary."""
+    print("=" * 45)
+    print("    PHOTOELECTRIC EFFECT SUMMARY")
+    print("=" * 45)
+    print(f"  Frequency       : {frequency:.3e} Hz")
+    print(f"  Work Function   : {work_function_eV} eV")
+    print("-" * 45)
+    possible = is_photoelectric_emission_possible(frequency, work_function_eV)
+    print(f"  Emission?       : {'YES' if possible else 'NO'}")
+    if possible:
+        ke = photoelectric_max_ke(frequency, work_function_eV)
+        vs = stopping_potential(frequency, work_function_eV)
+        print(f"  Max KE          : {joules_to_eV(ke):.4f} eV")
+        print(f"  Stopping V      : {vs:.4f} V")
+    print("=" * 45)
