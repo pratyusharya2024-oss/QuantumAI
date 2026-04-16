@@ -1,3 +1,422 @@
-#Here we get specified formulas for the field of Thermodynamics.
+"""
+thermodynamics.py
+Module: Thermodynamics
+Project: Automated Physics Modeler
+Covers: Ideal Gas Laws, Heat Transfer, Carnot Cycle, Entropy & Enthalpy
+Structure: Numerical (NumPy-based), fully modular functions
+"""
 
-print("This Problem is from the field of Thermodynamics")
+import numpy as np
+
+
+# ─────────────────────────────────────────────
+# CONSTANTS
+# ─────────────────────────────────────────────
+
+R = 8.314          # Universal Gas Constant (J/mol·K)
+ABSOLUTE_ZERO = 273.15  # °C to Kelvin offset
+
+
+# ─────────────────────────────────────────────
+# UNIT HELPERS
+# ─────────────────────────────────────────────
+
+def celsius_to_kelvin(temp_c: float) -> float:
+    """Convert Celsius to Kelvin."""
+    return np.array(temp_c) + ABSOLUTE_ZERO
+
+
+def kelvin_to_celsius(temp_k: float) -> float:
+    """Convert Kelvin to Celsius."""
+    return np.array(temp_k) - ABSOLUTE_ZERO
+
+
+# ─────────────────────────────────────────────
+# IDEAL GAS LAWS  (PV = nRT)
+# ─────────────────────────────────────────────
+
+def ideal_gas_pressure(n: float, T: float, V: float) -> float:
+    """
+    Calculate pressure using Ideal Gas Law.
+    P = nRT / V
+    Args:
+        n: moles of gas
+        T: temperature in Kelvin
+        V: volume in m³
+    Returns:
+        Pressure in Pascals (Pa)
+    """
+    return (n * R * T) / V
+
+
+def ideal_gas_volume(n: float, T: float, P: float) -> float:
+    """
+    Calculate volume using Ideal Gas Law.
+    V = nRT / P
+    Args:
+        n: moles of gas
+        T: temperature in Kelvin
+        P: pressure in Pascals
+    Returns:
+        Volume in m³
+    """
+    return (n * R * T) / P
+
+
+def ideal_gas_temperature(P: float, V: float, n: float) -> float:
+    """
+    Calculate temperature using Ideal Gas Law.
+    T = PV / nR
+    Args:
+        P: pressure in Pascals
+        V: volume in m³
+        n: moles of gas
+    Returns:
+        Temperature in Kelvin
+    """
+    return (P * V) / (n * R)
+
+
+def boyles_law(P1: float, V1: float, V2: float) -> float:
+    """
+    Boyle's Law — constant temperature.
+    P1V1 = P2V2
+    Returns:
+        P2 in Pascals
+    """
+    return (P1 * V1) / V2
+
+
+def charles_law(V1: float, T1: float, T2: float) -> float:
+    """
+    Charles's Law — constant pressure.
+    V1/T1 = V2/T2
+    Returns:
+        V2 in m³
+    """
+    return (V1 * T2) / T1
+
+
+def gay_lussacs_law(P1: float, T1: float, T2: float) -> float:
+    """
+    Gay-Lussac's Law — constant volume.
+    P1/T1 = P2/T2
+    Returns:
+        P2 in Pascals
+    """
+    return (P1 * T2) / T1
+
+
+# ─────────────────────────────────────────────
+# HEAT TRANSFER & SPECIFIC HEAT
+# ─────────────────────────────────────────────
+
+def heat_absorbed(m: float, c: float, delta_T: float) -> float:
+    """
+    Heat absorbed or released by a substance.
+    Q = mcΔT
+    Args:
+        m: mass in kg
+        c: specific heat capacity in J/(kg·K)
+        delta_T: change in temperature in Kelvin
+    Returns:
+        Heat Q in Joules
+    """
+    return m * c * delta_T
+
+
+def final_temperature(m1: float, c1: float, T1: float,
+                      m2: float, c2: float, T2: float) -> float:
+    """
+    Final equilibrium temperature when two substances mix.
+    T_final = (m1*c1*T1 + m2*c2*T2) / (m1*c1 + m2*c2)
+    Returns:
+        Final temperature in Kelvin
+    """
+    return (m1 * c1 * T1 + m2 * c2 * T2) / (m1 * c1 + m2 * c2)
+
+
+def heat_conduction(k: float, A: float, delta_T: float,
+                    d: float, t: float) -> float:
+    """
+    Fourier's Law of Heat Conduction.
+    Q = (k * A * ΔT * t) / d
+    Args:
+        k: thermal conductivity W/(m·K)
+        A: cross-sectional area in m²
+        delta_T: temperature difference in K
+        d: thickness/distance in m
+        t: time in seconds
+    Returns:
+        Heat transferred Q in Joules
+    """
+    return (k * A * delta_T * t) / d
+
+
+def heat_radiation(epsilon: float, A: float, T: float) -> float:
+    """
+    Stefan-Boltzmann Law for thermal radiation.
+    P = ε * σ * A * T⁴
+    Args:
+        epsilon: emissivity (0 to 1)
+        A: surface area in m²
+        T: temperature in Kelvin
+    Returns:
+        Radiated power in Watts
+    """
+    sigma = 5.67e-8  # Stefan-Boltzmann constant W/(m²·K⁴)
+    return epsilon * sigma * A * T**4
+
+
+def latent_heat(m: float, L: float) -> float:
+    """
+    Heat absorbed/released during phase change.
+    Q = mL
+    Args:
+        m: mass in kg
+        L: specific latent heat in J/kg
+    Returns:
+        Heat Q in Joules
+    """
+    return m * L
+
+
+# ─────────────────────────────────────────────
+# THERMODYNAMIC PROCESSES
+# ─────────────────────────────────────────────
+
+def work_done_isothermal(n: float, T: float, V1: float, V2: float) -> float:
+    """
+    Work done in an isothermal process.
+    W = nRT * ln(V2/V1)
+    Args:
+        n: moles
+        T: constant temperature in Kelvin
+        V1: initial volume in m³
+        V2: final volume in m³
+    Returns:
+        Work W in Joules
+    """
+    return n * R * T * np.log(V2 / V1)
+
+
+def work_done_isobaric(P: float, V1: float, V2: float) -> float:
+    """
+    Work done in an isobaric (constant pressure) process.
+    W = P * (V2 - V1)
+    Returns:
+        Work W in Joules
+    """
+    return P * (V2 - V1)
+
+
+def work_done_adiabatic(P1: float, V1: float, P2: float,
+                         V2: float, gamma: float = 1.4) -> float:
+    """
+    Work done in an adiabatic process.
+    W = (P1*V1 - P2*V2) / (γ - 1)
+    Args:
+        gamma: heat capacity ratio Cp/Cv (default 1.4 for diatomic gas)
+    Returns:
+        Work W in Joules
+    """
+    return (P1 * V1 - P2 * V2) / (gamma - 1)
+
+
+def internal_energy_change(n: float, Cv: float, delta_T: float) -> float:
+    """
+    Change in internal energy.
+    ΔU = n * Cv * ΔT
+    Args:
+        Cv: molar heat capacity at constant volume J/(mol·K)
+    Returns:
+        ΔU in Joules
+    """
+    return n * Cv * delta_T
+
+
+def first_law(delta_U: float, W: float) -> float:
+    """
+    First Law of Thermodynamics.
+    Q = ΔU + W
+    Args:
+        delta_U: change in internal energy (J)
+        W: work done by the system (J)
+    Returns:
+        Heat added Q in Joules
+    """
+    return delta_U + W
+
+
+# ─────────────────────────────────────────────
+# CARNOT CYCLE
+# ─────────────────────────────────────────────
+
+def carnot_efficiency(T_hot: float, T_cold: float) -> float:
+    """
+    Carnot engine efficiency.
+    η = 1 - (T_cold / T_hot)
+    Args:
+        T_hot: temperature of hot reservoir in Kelvin
+        T_cold: temperature of cold reservoir in Kelvin
+    Returns:
+        Efficiency as a decimal (0 to 1)
+    """
+    return 1 - (T_cold / T_hot)
+
+
+def carnot_work_output(Q_hot: float, T_hot: float, T_cold: float) -> float:
+    """
+    Work output of a Carnot engine.
+    W = η * Q_hot
+    Returns:
+        Work output W in Joules
+    """
+    eta = carnot_efficiency(T_hot, T_cold)
+    return eta * Q_hot
+
+
+def carnot_cop_refrigerator(T_hot: float, T_cold: float) -> float:
+    """
+    Coefficient of Performance for a Carnot refrigerator.
+    COP = T_cold / (T_hot - T_cold)
+    Returns:
+        COP (dimensionless)
+    """
+    return T_cold / (T_hot - T_cold)
+
+
+def carnot_cop_heat_pump(T_hot: float, T_cold: float) -> float:
+    """
+    Coefficient of Performance for a Carnot heat pump.
+    COP = T_hot / (T_hot - T_cold)
+    Returns:
+        COP (dimensionless)
+    """
+    return T_hot / (T_hot - T_cold)
+
+
+def carnot_heat_rejected(Q_hot: float, T_hot: float, T_cold: float) -> float:
+    """
+    Heat rejected to the cold reservoir.
+    Q_cold = Q_hot * (T_cold / T_hot)
+    Returns:
+        Heat rejected Q_cold in Joules
+    """
+    return Q_hot * (T_cold / T_hot)
+
+
+# ─────────────────────────────────────────────
+# ENTROPY
+# ─────────────────────────────────────────────
+
+def entropy_change_reversible(Q: float, T: float) -> float:
+    """
+    Entropy change for a reversible process.
+    ΔS = Q / T
+    Args:
+        Q: heat transferred in Joules
+        T: temperature in Kelvin
+    Returns:
+        Entropy change ΔS in J/K
+    """
+    return Q / T
+
+
+def entropy_change_heating(m: float, c: float, T1: float, T2: float) -> float:
+    """
+    Entropy change when heating/cooling a substance.
+    ΔS = m * c * ln(T2/T1)
+    Returns:
+        Entropy change ΔS in J/K
+    """
+    return m * c * np.log(T2 / T1)
+
+
+def entropy_change_expansion(n: float, V1: float, V2: float) -> float:
+    """
+    Entropy change for isothermal expansion of ideal gas.
+    ΔS = nR * ln(V2/V1)
+    Returns:
+        Entropy change ΔS in J/K
+    """
+    return n * R * np.log(V2 / V1)
+
+
+def total_entropy_universe(delta_S_system: float,
+                            delta_S_surroundings: float) -> float:
+    """
+    Second Law check — total entropy of universe.
+    ΔS_universe = ΔS_system + ΔS_surroundings
+    Returns:
+        ΔS_universe in J/K (must be >= 0 for real processes)
+    """
+    return delta_S_system + delta_S_surroundings
+
+
+# ─────────────────────────────────────────────
+# ENTHALPY
+# ─────────────────────────────────────────────
+
+def enthalpy_change(delta_U: float, P: float, delta_V: float) -> float:
+    """
+    Enthalpy change.
+    ΔH = ΔU + PΔV
+    Args:
+        delta_U: change in internal energy (J)
+        P: pressure in Pascals
+        delta_V: change in volume in m³
+    Returns:
+        ΔH in Joules
+    """
+    return delta_U + P * delta_V
+
+
+def enthalpy_isobaric(m: float, c_p: float, delta_T: float) -> float:
+    """
+    Enthalpy change at constant pressure.
+    ΔH = m * Cp * ΔT
+    Args:
+        c_p: specific heat at constant pressure J/(kg·K)
+    Returns:
+        ΔH in Joules
+    """
+    return m * c_p * delta_T
+
+
+def gibbs_free_energy(delta_H: float, T: float, delta_S: float) -> float:
+    """
+    Gibbs Free Energy — determines spontaneity.
+    ΔG = ΔH - TΔS
+    Returns:
+        ΔG in Joules (negative = spontaneous)
+    """
+    return delta_H - T * delta_S
+
+
+# ─────────────────────────────────────────────
+# THERMODYNAMIC LAWS SUMMARY (Zero & Third)
+# ─────────────────────────────────────────────
+
+def zeroth_law_check(T_A: float, T_B: float, T_C: float,
+                     tol: float = 1e-6) -> bool:
+    """
+    Zeroth Law: if A==C and B==C, then A==B (thermal equilibrium).
+    Returns:
+        True if all three are in thermal equilibrium
+    """
+    return np.isclose(T_A, T_B, atol=tol) and np.isclose(T_B, T_C, atol=tol)
+
+
+def third_law_entropy(T: float, S_0: float = 0.0) -> float:
+    """
+    Third Law: entropy approaches a minimum as T → 0K.
+    Models entropy as S = S_0 + k*ln(T+1) numerically.
+    Args:
+        T: temperature in Kelvin
+        S_0: residual entropy at 0K (default 0 for perfect crystal)
+    Returns:
+        Approximate entropy S in J/K
+    """
+    k = 1.380649e-23  # Boltzmann constant
+    return S_0 + k * np.log(T + 1)
