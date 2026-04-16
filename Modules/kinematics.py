@@ -7,9 +7,10 @@ Author: [Your Name]
 
 # modules kinematics.py
 from sympy import symbol, Eq, symbols
-from core.logic_engine import LogicEngine
+from Core import Logic_Engine
+from core.logic_engine.py import Logic_Engine
 
-def register(engine: LogicEngine) -> None:
+def register(engine: Logic_Engine) -> None:
     u, v, a, t, s,= symbols('u v a t s ')
     engine.register_formula('velocity' , Eq(v, u + a * t))
     engine.register_formula('displacement' , Eq(s, u * t + (a*t**2)/2))
