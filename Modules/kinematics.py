@@ -11,7 +11,7 @@ from Core import Logic_Engine
 
 
 def register(engine: Logic_Engine) -> None:
-    u, v, a, t, s,= symbols('u v a t s ')
+    u, v, a, t, s, g, theta= symbols('u v a t s g theta')
     engine.register_formula('velocity' , Eq(v, u + a * t))
     engine.register_formula('displacement' , Eq(s, u * t + (a*t**2)/2))
     engine.register_formula('final_velocity_squared' , Eq(v**2, u**2 +2*a*s))
