@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 
 # modules thermodynamics.py
-from sympy import symbol, Eq, symbols
+from sympy import Symbol, Eq, symbols
 
 from Core.logic_engine import Logic_Engine
  

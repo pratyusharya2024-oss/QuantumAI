@@ -15,7 +15,7 @@ import numpy as np
 import pandas as pd
 
 # modules energetics.py
-from sympy import symbol, Eq, symbols, sqrt
+from sympy import Symbol, Eq, symbols, sqrt
 from Core.logic_engine import Logic_Engine
 
 def register(engine: Logic_Engine) -> None:
