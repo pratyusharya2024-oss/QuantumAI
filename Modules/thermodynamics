@@ -12,6 +12,7 @@ import numpy as np
 
 # modules thermodynamics.py
 from sympy import symbol, Eq, symbols
+
 from Core.logic_engine import Logic_Engine
  
 def register(engine: Logic_Engine) -> None:
