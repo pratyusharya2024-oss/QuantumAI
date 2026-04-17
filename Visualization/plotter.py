@@ -17,6 +17,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from matplotlib.ticker import AutoMinorLocator
+from matplotlib.figure import Figure
 
 
 # ─────────────────────────────────────────────
@@ -147,7 +148,7 @@ def _make_figure(n_plots, theme_name, figsize=None):
         axes = [ax1, ax2, ax3]
     else:
         raise ValueError("n_plots must be 1, 2, or 3.")
-    fig.patch.set_facecolor(t["bg"])
+    fig.patch.set_facecolor(t["bg"])  # type: ignore
     plt.tight_layout(pad=3.0)
     return fig, axes
 
