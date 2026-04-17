@@ -1,16 +1,17 @@
-﻿"""
-Physics Module: Kinematics
-Covers: 1D & 2D motion, velocity, acceleration, projectiles, relative motion
-Levels: Basic → Advanced
-Author: [Your Name]
-"""
+﻿from __future__ import annotations
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from pathlib import Path
+import math
+from typing import Sequence, Tuple
+
+import numpy as np
+import pandas as pd
+
 # modules kinematics.py
-from sympy import symbol, Eq, symbols
-from Core import Logic_Engine
+from sympy import Symbol, Eq, symbols
 from Core.logic_engine import Logic_Engine
  
 def register(engine: Logic_Engine) -> None:
@@ -19,15 +20,6 @@ def register(engine: Logic_Engine) -> None:
     engine.register_formula('displacement',            Eq(s, u * t + (a * t**2) / 2))
     engine.register_formula('final_velocity_squared',  Eq(v**2, u**2 + 2 * a * s))
     engine.register_formula('displacement_avg',        Eq(s, ((u + v) / 2) * t))
-
-from __future__ import annotations
-from pathlib import Path
-import math
-from typing import Sequence, Tuple
-
-import numpy as np
-import pandas as pd
-
 
 DATA_FOLDER = Path.cwd() / "data"
 GRAVITY = 9.81

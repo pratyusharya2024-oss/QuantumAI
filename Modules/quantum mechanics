@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 # modules quantum_mechanics.py
-from sympy import symbol, Eq, symbols, sqrt, pi
+from sympy import Symbol, Eq, symbols, sqrt, pi
 from Core.logic_engine import Logic_Engine
  
 def register(engine: Logic_Engine) -> None:

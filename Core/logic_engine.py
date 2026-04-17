@@ -4,7 +4,7 @@ from sympy import im, symbols, Eq, solve, diff, integrate, simplify, latex, symp
 from sympy import Function, Symbol
 from sympy.core.expr import Expr
 
-class LogicEngine:
+class Logic_Engine:
 
     """
     Central symbolic computation engine.

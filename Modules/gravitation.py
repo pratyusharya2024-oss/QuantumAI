@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 # modules gravitation.py
-from sympy import symbol, Eq, symbols, pi, sqrt
+from sympy import Symbol, Eq, symbols, pi, sqrt
 from Core.logic_engine import Logic_Engine
  
 def register(engine: Logic_Engine) -> None:
