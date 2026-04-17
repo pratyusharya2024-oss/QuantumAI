@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # modules kinematics.py
 from sympy import symbol, Eq, symbols
 from Core import Logic_Engine
-from core.logic_engine import Logic_Engine
+from Core.logic_engine import Logic_Engine
  
 def register(engine: Logic_Engine) -> None:
     u, v, a, t, s, g, theta = symbols('u v a t s g theta')

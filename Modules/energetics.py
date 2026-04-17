@@ -16,8 +16,8 @@ import pandas as pd
 
 # modules energetics.py
 from sympy import symbol, Eq, symbols, sqrt
-from core.logic_engine import Logic_Engine
- 
+from Core.logic_engine import Logic_Engine
+
 def register(engine: Logic_Engine) -> None:
     m, v, h, g, k, x, F, d, P, t, W = symbols('m v h g k x F d P t W')
     engine.register_formula('kinetic_energy',        Eq(W, m * v**2 / 2))

@@ -15,7 +15,7 @@ import pandas as pd
 
 # modules gravitation.py
 from sympy import symbol, Eq, symbols, pi, sqrt
-from core.logic_engine import Logic_Engine
+from Core.logic_engine import Logic_Engine
  
 def register(engine: Logic_Engine) -> None:
     G, M, m, r, F, g, v, T = symbols('G M m r F g v T')
