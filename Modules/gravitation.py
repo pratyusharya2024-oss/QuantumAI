@@ -6,11 +6,23 @@ Covers: Newton's law, gravitational field, orbital motion, escape velocity, sate
 Levels: Basic → Advanced
 Author: [Your Name]
 """
-
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import math
 import numpy as np
 import pandas as pd
 
+# modules gravitation.py
+from sympy import symbol, Eq, symbols, pi, sqrt
+from core.logic_engine import Logic_Engine
+ 
+def register(engine: Logic_Engine) -> None:
+    G, M, m, r, F, g, v, T = symbols('G M m r F g v T')
+    engine.register_formula('gravitational_force',   Eq(F, G * M * m / r**2))
+    engine.register_formula('field_strength',        Eq(g, G * M / r**2))
+    engine.register_formula('orbital_velocity',      Eq(v, sqrt(G * M / r)))
+    engine.register_formula('orbital_period',        Eq(T, 2 * pi * sqrt(r**3 / (G * M))))
 
 # ─────────────────────────────────────────────
 # CONSTANTS

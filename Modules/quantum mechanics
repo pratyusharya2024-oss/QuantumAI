@@ -8,11 +8,24 @@ Covers: Planck's theory, Photoelectric effect, de Broglie, Bohr model,
 Levels: Basic → Advanced
 Author: [Your Name]
 """
-
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import math
 import numpy as np
 import pandas as pd
 
+# modules quantum_mechanics.py
+from sympy import symbol, Eq, symbols, sqrt, pi
+from core.logic_engine import Logic_Engine
+ 
+def register(engine: Logic_Engine) -> None:
+    E, h, f, lam, p, m, v, c, phi, n, Z = symbols('E h f lam p m v c phi n Z')
+    engine.register_formula('photon_energy',         Eq(E, h * f))
+    engine.register_formula('de_broglie',            Eq(lam, h / (m * v)))
+    engine.register_formula('photoelectric',         Eq(E, phi + E))
+    engine.register_formula('bohr_energy',           Eq(E, -13.6 * Z**2 / n**2))
+    engine.register_formula('mass_energy',           Eq(E, m * c**2))
 
 # ─────────────────────────────────────────────
 # CONSTANTS

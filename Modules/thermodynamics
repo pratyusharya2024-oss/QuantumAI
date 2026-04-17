@@ -5,10 +5,21 @@ Project: Automated Physics Modeler
 Covers: Ideal Gas Laws, Heat Transfer, Carnot Cycle, Entropy & Enthalpy
 Structure: Numerical (NumPy-based), fully modular functions
 """
-
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 
-
+# modules thermodynamics.py
+from sympy import symbol, Eq, symbols
+from core.logic_engine import Logic_Engine
+ 
+def register(engine: Logic_Engine) -> None:
+    Q, m, c, T, T1, T2, W, P, V, n, R, gamma = symbols('Q m c T T1 T2 W P V n R gamma')
+    engine.register_formula('heat_energy',           Eq(Q, m * c * (T2 - T1)))
+    engine.register_formula('ideal_gas_law',         Eq(P * V, n * R * T))
+    engine.register_formula('work_by_gas',           Eq(W, P * (V)))
+    engine.register_formula('first_law_thermo',      Eq(Q, W + (T2 - T1)))
 # ─────────────────────────────────────────────
 # CONSTANTS
 # ─────────────────────────────────────────────

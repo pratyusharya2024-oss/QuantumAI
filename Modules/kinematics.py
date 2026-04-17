@@ -4,17 +4,22 @@ Covers: 1D & 2D motion, velocity, acceleration, projectiles, relative motion
 Levels: Basic → Advanced
 Author: [Your Name]
 """
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # modules kinematics.py
 from sympy import symbol, Eq, symbols
 from Core import Logic_Engine
-
-
+from core.logic_engine import Logic_Engine
+ 
 def register(engine: Logic_Engine) -> None:
-    u, v, a, t, s, g, theta= symbols('u v a t s g theta')
-    engine.register_formula('velocity' , Eq(v, u + a * t))
-    engine.register_formula('displacement' , Eq(s, u * t + (a*t**2)/2))
-    engine.register_formula('final_velocity_squared' , Eq(v**2, u**2 +2*a*s))
+    u, v, a, t, s, g, theta = symbols('u v a t s g theta')
+    engine.register_formula('velocity',                Eq(v, u + a * t))
+    engine.register_formula('displacement',            Eq(s, u * t + (a * t**2) / 2))
+    engine.register_formula('final_velocity_squared',  Eq(v**2, u**2 + 2 * a * s))
+    engine.register_formula('displacement_avg',        Eq(s, ((u + v) / 2) * t))
+
 from __future__ import annotations
 from pathlib import Path
 import math

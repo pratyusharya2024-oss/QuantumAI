@@ -7,12 +7,24 @@ Covers: Work, Kinetic & Potential Energy, Power, Conservation Laws,
 Levels: Basic → Advanced
 Author: [Your Name]
 """
-
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import math
 import numpy as np
 import pandas as pd
 
-
+# modules energetics.py
+from sympy import symbol, Eq, symbols, sqrt
+from core.logic_engine import Logic_Engine
+ 
+def register(engine: Logic_Engine) -> None:
+    m, v, h, g, k, x, F, d, P, t, W = symbols('m v h g k x F d P t W')
+    engine.register_formula('kinetic_energy',        Eq(W, m * v**2 / 2))
+    engine.register_formula('gravitational_pe',      Eq(W, m * g * h))
+    engine.register_formula('elastic_pe',            Eq(W, k * x**2 / 2))
+    engine.register_formula('work_done',             Eq(W, F * d))
+    engine.register_formula('power',                 Eq(P, W / t))
 # ─────────────────────────────────────────────
 # BASIC — Work & Energy
 # ─────────────────────────────────────────────
