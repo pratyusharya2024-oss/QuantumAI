@@ -126,7 +126,7 @@ class DataCollector:
 
         known: dict[str, float] = {}
         while True:
-            symbol = input("  Symbol (e.g. u, a, t): ").strip()
+            symbol = input("  Symbol (e.g. v, u, a, t, g, theta): ").strip()
             if not symbol:
                 break
             if symbol not in VARIABLE_PATTERNS:
