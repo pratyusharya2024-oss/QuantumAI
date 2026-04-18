@@ -1,369 +1,186 @@
-"""
-main.py
-=======
-Central Entry Point — Automated Physics Modeler
-Coordinates: DataCollector → Logic_Engine → Solver → Plotter → Animator
-Author: [Your Name]
-"""
+from sympy import symbols
 
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from Core.logic_engine import Logic_Engine
+from Core.data_collector import DataCollector
+from Core.solver import Solver
+from Visualization.animations import Animator
+from Visualization.plotter import Plotter
+import Modules
 
-from Core import Logic_Engine, DataCollector, Solver
 
-# ─────────────────────────────────────────────
-# MODULE REGISTRY — loads register() from each module
-# ─────────────────────────────────────────────
+MODULE_REGISTRY: dict = {
+    "kinematics":        Modules.kinematics,
+    "gravitation":       Modules.gravitation,
+    "energetics":        Modules.energetics,
+    "thermodynamics":    Modules.thermodynamics,
+    "quantum_mechanics": Modules.quantum_mechanics,
+}
 
-def _load_module(physics_field: str, engine: Logic_Engine) -> None:
+TIME_STEPS = 500
+
+
+class PhysicsModeler:
     """
-    Dynamically loads the correct physics module and
-    registers its formulas into the Logic_Engine.
+    Application entry point and pipeline orchestrator.
+
+    Coordinates the full pipeline:
+        DataCollector → LogicEngine → Solver → Terminal Output
+                                             → Plotter (optional)
+                                             → Animator (optional)
     """
-    module_map = {
-        "kinematics":      "Modules.kinematics",
-        "gravitation":     "Modules.gravitation",
-        "energetics":      "Modules.energetics",
-        "thermodynamics":  "Modules.thermodynamics",
-        "quantum_mechanics": "Modules.quantum_mechanics",
-    }
 
-    module_path = module_map.get(physics_field)
-    if not module_path:
-        raise ValueError(f"Unknown physics field: '{physics_field}'")
+    def __init__(self) -> None:
+        self._engine    = Logic_Engine()
+        self._collector = DataCollector()
+        self._solver    = Solver(self._engine)
+        self._plotter   = Plotter()
+        self._animator  = Animator()
 
-    import importlib
-    mod = importlib.import_module(module_path)
+    def run(self) -> None:
+        self._print_welcome()
+        while True:
+            try:
+                self._run_pipeline()
+            except KeyboardInterrupt:
+                self._print_exit()
+                break
+            except (ValueError, KeyError, RuntimeError) as exc:
+                print(f"\n  [Error] {exc}")
+                print("  Please try again with a different problem.\n")
 
-    if hasattr(mod, "register"):
-        mod.register(engine)
-        print(f"\n  ✅ Module loaded: {physics_field.upper()}")
-    else:
-        raise AttributeError(
-            f"Module '{module_path}' has no register() function."
+            if not self._ask_continue():
+                self._print_exit()
+                break
+
+    # ------------------------------------------------------------------
+    # Pipeline
+    # ------------------------------------------------------------------
+
+    def _run_pipeline(self) -> None:
+        # Stage 1 — Collect problem data from the user
+        data = self._collect_problem()
+
+        # Stage 2 — Register the relevant physics module into the engine
+        self._load_physics_module(data["physics_field"])
+
+        # Stage 3 — Pull the rearranged formula from the engine
+        expression = self._resolve_formula(data)
+
+        # Stage 4 — Push expression + known values into the solver
+        result = self._compute_result(expression, data)
+
+        # Stage 5 — Display the final answer
+        self._display_result(result)
+
+        # Stage 6 — Optionally plot a graph
+        if self._ask_graph():
+            result_with_series = self._compute_with_time_series(expression, data)
+            self._plotter.plot(
+                dataframe=result_with_series["dataframe"],
+                target=data["target"],
+            )
+
+            # Stage 7 — Optionally animate
+            if self._ask_animation():
+                self._animator.animate(
+                    dataframe=result_with_series["dataframe"],
+                    target=data["target"],
+                    known=data["known"],
+                )
+
+    def _collect_problem(self) -> dict:
+        data = self._collector.collect()
+        if not data.get("known"):
+            raise ValueError("No known values were extracted from the problem.")
+        if not data.get("target"):
+            raise ValueError("Could not determine the target variable.")
+        return data
+
+    def _load_physics_module(self, physics_field: str) -> None:
+        if physics_field not in MODULE_REGISTRY:
+            raise KeyError(
+                f"Physics field '{physics_field}' has no registered module. "
+                f"Available: {list(MODULE_REGISTRY.keys())}"
+            )
+        MODULE_REGISTRY[physics_field].register(self._engine)
+        print(f"\n  Module loaded: {physics_field.upper()}")
+
+    def _resolve_formula(self, data: dict):
+        known_symbols = set(data["known"].keys())
+        target = data["target"]
+
+        formula_name = self._engine.select_formula(known_symbols, target)
+        print(f"  Formula selected: {formula_name}")
+
+        target_symbol = self._engine.get_symbol(target)
+        solutions = self._engine.rearrange(formula_name, target_symbol)
+
+        if not solutions:
+            raise ValueError(
+                f"LogicEngine could not rearrange '{formula_name}' for '{target}'."
+            )
+
+        print(f"  Rearranged expression: {target} = {solutions[0]}")
+        return solutions[0]
+
+    def _compute_result(self, expression, data: dict) -> dict:
+        """Single-point solve — no time series."""
+        return self._solver.solve(
+            expression=expression,
+            known=data["known"],
+            target=data["target"],
         )
 
-
-# ─────────────────────────────────────────────
-# FORMULA DISPLAY — prints formula, steps, answer
-# ─────────────────────────────────────────────
-
-def _display_result(
-    physics_field: str,
-    formula_name: str,
-    formula_latex: str,
-    known: dict,
-    target: str,
-    result: float,
-    expression: str,
-) -> None:
-    """Prints a clean formatted result block to terminal."""
-    print("\n" + "═" * 60)
-    print(f"  📐 PHYSICS FIELD  : {physics_field.upper()}")
-    print(f"  📋 FORMULA USED   : {formula_name}")
-    print("═" * 60)
-    print(f"  Symbolic Form  : {formula_latex}")
-    print(f"  Expression     : {expression}")
-    print("─" * 60)
-    print("  KNOWN VALUES:")
-    for sym, val in known.items():
-        print(f"    {sym} = {val}")
-    print("─" * 60)
-    print(f"  ✅ {target} = {result:.6f}")
-    print("═" * 60)
-
-
-# ─────────────────────────────────────────────
-# LOGGER — writes to Data/logs.csv
-# ─────────────────────────────────────────────
-
-def _log_result(
-    physics_field: str,
-    formula_name: str,
-    known: dict,
-    target: str,
-    result: float,
-    status: str = "success",
-    notes: str = "",
-) -> None:
-    """Appends a result row to Data/logs.csv."""
-    import csv
-    from datetime import datetime
-
-    log_path = os.path.join(
-        os.path.dirname(os.path.abspath(__file__)), "Data", "logs.csv"
-    )
-
-    inputs_str = "  ".join(f"{k}={v}" for k, v in known.items())
-    result_str = f"{target}={result:.6f}"
-    timestamp  = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-    row = [timestamp, physics_field, formula_name,
-           inputs_str, result_str, status, notes]
-
-    try:
-        with open(log_path, "a", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(row)
-        print(f"\n  📁 Result logged to Data/logs.csv")
-    except Exception as e:
-        print(f"\n  ⚠️  Could not write to logs.csv: {e}")
-
-
-# ─────────────────────────────────────────────
-# PLOT TRIGGER
-# ─────────────────────────────────────────────
-
-def _trigger_plot(physics_field: str, result_data: dict) -> None:
-    """Calls the correct plotter function based on physics field."""
-    try:
-        from Visualization.plotter import (
-            plot_projectile_trajectory,
-            plot_1d_motion,
-            plot_orbital_path,
-            plot_gravitational_field,
-            plot_shm_energy,
-            plot_projectile_energy,
-            plot_radioactive_decay,
-            plot_hydrogen_energy_levels,
-            plot_carnot_cycle,
-            plot_pv_diagram,
+    def _compute_with_time_series(self, expression, data: dict) -> dict:
+        """Re-runs the solver with time_steps to produce the DataFrame for visuals."""
+        if "t" not in data["known"]:
+            raise ValueError(
+                "Cannot generate a graph — 't' (time) is not in the known values."
+            )
+        return self._solver.solve(
+            expression=expression,
+            known=data["known"],
+            target=data["target"],
+            time_steps=TIME_STEPS,
         )
 
-        df = result_data.get("dataframe")
+    def _display_result(self, result: dict) -> None:
+        print("\n" + "=" * 60)
+        print("  FINAL ANSWER")
+        print("=" * 60)
+        print(f"  {result['target']} = {result['result']:.4f}")
+        print(f"  (Expression used: {result['expression']})")
+        print("=" * 60 + "\n")
 
-        print("\n  📊 Generating graph...")
+    # ------------------------------------------------------------------
+    # Terminal UI helpers
+    # ------------------------------------------------------------------
 
-        if physics_field == "kinematics":
-            if df is not None:
-                plot_1d_motion(df)
-            else:
-                print("  ⚠️  No simulation data for plot.")
+    def _print_welcome(self) -> None:
+        print("\n" + "=" * 60)
+        print("   Automated Physics Modeler")
+        print("   Computational Research Engine v1.0")
+        print("=" * 60)
+        print("  Supported fields: kinematics, gravitation,")
+        print("  energetics, thermodynamics, quantum_mechanics")
+        print("=" * 60 + "\n")
 
-        elif physics_field == "gravitation":
-            if df is not None:
-                plot_orbital_path(df)
-            else:
-                print("  ⚠️  No simulation data for plot.")
+    def _print_exit(self) -> None:
+        print("\n  Exiting Physics Modeler. Goodbye!\n")
 
-        elif physics_field == "energetics":
-            if df is not None:
-                plot_shm_energy(df)
-            else:
-                print("  ⚠️  No simulation data for plot.")
+    def _ask_continue(self) -> bool:
+        answer = input("\n  Solve another problem? (y/n): ").strip().lower()
+        return answer == "y"
 
-        elif physics_field == "quantum_mechanics":
-            if df is not None:
-                plot_radioactive_decay(df)
-            else:
-                print("  ⚠️  No simulation data for plot.")
+    def _ask_graph(self) -> bool:
+        answer = input("  Would you like to see a graph? (y/n): ").strip().lower()
+        return answer == "y"
 
-        elif physics_field == "thermodynamics":
-            print("  ℹ️  For thermodynamics, use plot_carnot_cycle() or plot_pv_diagram() directly.")
+    def _ask_animation(self) -> bool:
+        answer = input("  Would you like to see an animation? (y/n): ").strip().lower()
+        return answer == "y"
 
-    except Exception as e:
-        print(f"\n  ⚠️  Could not generate plot: {e}")
-
-
-# ─────────────────────────────────────────────
-# ANIMATION TRIGGER
-# ─────────────────────────────────────────────
-
-def _trigger_animation(
-    physics_field: str,
-    formula_latex: str,
-    steps: list,
-    answer: str,
-    known: dict,
-) -> None:
-    """Asks user if they want animation, then launches it."""
-    print("\n" + "─" * 60)
-    choice = input("  🎬 Want to see an animation? (yes/no): ").strip().lower()
-    if choice not in ("yes", "y"):
-        print("  Skipping animation.")
-        return
-
-    try:
-        from Visualization.animations import (
-            animate_projectile,
-            animate_1d_motion,
-            animate_orbit,
-            animate_shm,
-            animate_decay,
-            animate_bohr,
-            animate_carnot,
-        )
-
-        print("\n  🎬 Launching animation...")
-
-        if physics_field == "kinematics":
-            v = known.get("v", known.get("u", 20))
-            angle = known.get("theta", 45)
-            animate_projectile(v, angle, formula_latex, steps, answer)
-
-        elif physics_field == "gravitation":
-            M = known.get("M", 5.972e24)
-            r = known.get("r", 6.771e6)
-            animate_orbit(M, r, formula_latex, steps, answer)
-
-        elif physics_field == "energetics":
-            k = known.get("k", 100)
-            A = known.get("x", 0.5)
-            m = known.get("m", 1.0)
-            animate_shm(k, A, m, formula_latex, steps, answer)
-
-        elif physics_field == "quantum_mechanics":
-            N0      = known.get("N", 1000)
-            t_half  = known.get("t", 5)
-            total_t = t_half * 6
-            animate_decay(N0, t_half, total_t, formula_latex, steps, answer)
-
-        elif physics_field == "thermodynamics":
-            T_hot  = known.get("T1", 500)
-            T_cold = known.get("T2", 300)
-            V1     = known.get("V", 0.001)
-            V2     = V1 * 3
-            animate_carnot(T_hot, T_cold, V1, V2,
-                           formula=formula_latex,
-                           steps=steps, answer=answer)
-
-    except Exception as e:
-        print(f"\n  ⚠️  Animation failed: {e}")
-
-
-# ─────────────────────────────────────────────
-# MAIN PIPELINE
-# ─────────────────────────────────────────────
-
-def run() -> None:
-    """
-    Full pipeline:
-    DataCollector → Logic_Engine → Solver → Display → Log → Plot → Animate
-    """
-    print("\n" + "═" * 60)
-    print("   ⚛️   AUTOMATED PHYSICS MODELER   ⚛️")
-    print("═" * 60)
-
-    # ── Step 1: Collect problem
-    collector = DataCollector()
-    try:
-        problem_data = collector.collect()
-    except ValueError as e:
-        print(f"\n  ❌ Input error: {e}")
-        return
-
-    physics_field = problem_data["physics_field"]
-    known         = problem_data["known"]
-    target        = problem_data["target"]
-
-    # ── Step 2: Load module + register formulas
-    engine = Logic_Engine()
-    try:
-        _load_module(physics_field, engine)
-    except (ValueError, AttributeError) as e:
-        print(f"\n  ❌ Module error: {e}")
-        return
-
-    # ── Step 3: Select best formula
-    try:
-        formula_name = engine.select_formula(set(known.keys()), target)
-        formula_eq   = engine.get_formula(formula_name)
-        print(f"\n  🔍 Selected formula: {formula_name}")
-        print(f"     {formula_eq}")
-    except ValueError as e:
-        print(f"\n  ❌ Formula error: {e}")
-        _log_result(physics_field, "unknown", known,
-                    target, 0.0, "error", str(e))
-        return
-
-    # ── Step 4: Rearrange for target
-    from sympy import symbols
-    target_sym = engine.get_symbol(target)
-    try:
-        solutions  = engine.rearrange(formula_name, target_sym)
-        expression = solutions[0]
-        formula_latex = engine.to_latex(formula_eq)
-        print(f"\n  🔄 Rearranged: {target} = {expression}")
-    except ValueError as e:
-        print(f"\n  ❌ Rearrangement error: {e}")
-        _log_result(physics_field, formula_name, known,
-                    target, 0.0, "error", str(e))
-        return
-
-    # ── Step 5: Solve numerically
-    solver = Solver(engine)
-    try:
-        result_data = solver.solve(
-            expression = expression,
-            known      = known,
-            target     = target,
-            time_steps = 500,
-        )
-    except (ValueError, RuntimeError) as e:
-        print(f"\n  ❌ Solver error: {e}")
-        _log_result(physics_field, formula_name, known,
-                    target, 0.0, "error", str(e))
-        return
-
-    result = result_data["result"]
-
-    # ── Step 6: Build steps for display + animation
-    steps = [
-        f"Field      : {physics_field}",
-        f"Formula    : {formula_name}",
-        f"Equation   : {formula_eq}",
-        f"Rearranged : {target} = {expression}",
-        f"Known      : {known}",
-        f"Result     : {target} = {result:.6f}",
-    ]
-    answer = f"{target} = {result:.6f}"
-
-    # ── Step 7: Display result
-    _display_result(
-        physics_field = physics_field,
-        formula_name  = formula_name,
-        formula_latex = formula_latex,
-        known         = known,
-        target        = target,
-        result        = result,
-        expression    = str(expression),
-    )
-
-    # ── Step 8: Log to CSV
-    _log_result(
-        physics_field = physics_field,
-        formula_name  = formula_name,
-        known         = known,
-        target        = target,
-        result        = result,
-        status        = "success",
-    )
-
-    # ── Step 9: Plot
-    _trigger_plot(physics_field, result_data)
-
-    # ── Step 10: Animation
-    _trigger_animation(
-        physics_field = physics_field,
-        formula_latex = formula_latex,
-        steps         = steps,
-        answer        = answer,
-        known         = known,
-    )
-
-    print("\n  ✅ Session complete.\n")
-
-
-# ─────────────────────────────────────────────
-# REPEAT LOOP — run multiple problems
-# ─────────────────────────────────────────────
 
 if __name__ == "__main__":
-    while True:
-        run()
-        print("\n" + "─" * 60)
-        again = input("  🔁 Solve another problem? (yes/no): ").strip().lower()
-        if again not in ("yes", "y"):
-            print("\n  👋 Exiting Physics Modeler. Goodbye!\n")
-            break
+    app = PhysicsModeler()
+    app.run()
