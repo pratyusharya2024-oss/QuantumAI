@@ -14,6 +14,7 @@ import matplotlib.animation as animation
 import matplotlib.patches as patches
 from matplotlib.widgets import Button
 from matplotlib.patches import FancyArrowPatch, Circle, FancyBboxPatch
+from matplotlib.markers import MarkerStyle
 import matplotlib.patheffects as pe
 import math
 import threading
@@ -396,7 +397,7 @@ class Motion1DAnimator(BaseAnimator):
             scale = min(abs(vp) * 0.4, x_max * 0.4)
             sign  = 1 if vp >= 0 else -1
             self.arrow.set_positions((xp, 0.2),
-                                     (xp + sign * scale, 0.2))
+                                     [xp + sign * scale, 0.2])
             self.vel_text.set_text(
                 f"t={self.t_arr[i]:.2f}s  x={xp:.2f}m  v={vp:.2f}m/s")
             self._pulse_button(frame)
@@ -764,7 +765,7 @@ class BohrTransitionAnimator(BaseAnimator):
         self.photon = ax.scatter([], [], s=200,
                                  color=t["colors"][4],
                                  alpha=0, zorder=8,
-                                 marker="*")
+                                 marker=MarkerStyle("*"))
         self.info = ax.text(0.02, 0.95, "",
                             transform=ax.transAxes,
                             color=t["text"], fontsize=8)
@@ -959,5 +960,5 @@ def animate_carnot(T_hot, T_cold, V1, V2,
             f"η = {eta:.4f} = {eta*100:.2f}%",
         ]
         answer = answer or f"Efficiency η = {eta*100:.2f}%"
-    a = CarnotAnimator(T_hot, T_cold, V1, V2, n, formula, steps, answer)
+    a = CarnotAnimator(T_hot, T_cold, V1, V2, formula, steps, answer, n)
     a.start()
