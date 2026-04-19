@@ -5,6 +5,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.gridspec import GridSpec
+from matplotlib.widgets import Button
+import importlib
+import importlib.util
+import tempfile
+import wave
+from pathlib import Path
 
 
 class Animator:
@@ -24,6 +30,11 @@ class Animator:
         self._dataframe: Optional[pd.DataFrame] = None
         self._target: Optional[str] = None
         self._interval: int = 20
+        self._paused: bool = False
+        self._audio_player = None
+        self._audio_playback = None
+        self._music_on: bool = False
+        self._music_file: Optional[Path] = None
 
     # ------------------------------------------------------------------
     # Public entry point
@@ -49,6 +60,7 @@ class Animator:
         self._dataframe = dataframe
         self._target = target
         self._interval = interval
+        self._paused = False
 
         t_data = dataframe["t"].to_numpy()
         y_data = dataframe[target].to_numpy()
@@ -178,12 +190,101 @@ class Animator:
             blit=True,
             repeat=False,
         )
+        self._attach_controls(fig, anim)
+        self._start_soft_music()
 
         plt.tight_layout()
         plt.show()
+        self._stop_soft_music()
 
         # Keep reference alive so garbage collector doesn't kill the animation
         _ = anim
+
+    def _attach_controls(self, fig: plt.Figure, anim: animation.FuncAnimation) -> None:
+        """
+        Adds UI controls directly in the animation window:
+        - Pause / Play toggle button.
+        - Music ON / OFF toggle button.
+        """
+        pause_ax = fig.add_axes([0.41, 0.01, 0.09, 0.05])
+        music_ax = fig.add_axes([0.52, 0.01, 0.12, 0.05])
+
+        pause_button = Button(pause_ax, "Pause", color="#23233f", hovercolor="#2b2b52")
+        music_button = Button(music_ax, "Music: ON", color="#23233f", hovercolor="#2b2b52")
+
+        pause_button.label.set_color("white")
+        music_button.label.set_color("white")
+
+        def toggle_pause(_event) -> None:
+            self._paused = not self._paused
+            if self._paused:
+                anim.event_source.stop()
+                pause_button.label.set_text("Play")
+            else:
+                anim.event_source.start()
+                pause_button.label.set_text("Pause")
+            fig.canvas.draw_idle()
+
+        def toggle_music(_event) -> None:
+            self._music_on = not self._music_on
+            if self._music_on:
+                self._start_soft_music()
+                music_button.label.set_text("Music: ON")
+            else:
+                self._stop_soft_music()
+                music_button.label.set_text("Music: OFF")
+            fig.canvas.draw_idle()
+
+        pause_button.on_clicked(toggle_pause)
+        music_button.on_clicked(toggle_music)
+        self._music_on = True
+
+    def _start_soft_music(self) -> None:
+        """
+        Plays low-volume ambient tone if simpleaudio is available.
+        Falls back silently when the package is unavailable.
+        """
+        if not self._music_on:
+            return
+
+        if self._audio_player is None:
+            if importlib.util.find_spec("simpleaudio") is None:
+                return
+            self._audio_player = importlib.import_module("simpleaudio")
+
+        if self._audio_playback is not None and self._audio_playback.is_playing():
+            return
+
+        if self._music_file is None:
+            self._music_file = self._build_soft_track_file()
+        wave_obj = self._audio_player.WaveObject.from_wave_file(str(self._music_file))
+        self._audio_playback = wave_obj.play()
+
+    def _stop_soft_music(self) -> None:
+        if self._audio_playback is not None and self._audio_playback.is_playing():
+            self._audio_playback.stop()
+        self._audio_playback = None
+
+    def _build_soft_track_file(self) -> Path:
+        """
+        Generates a short ambient two-tone WAV loop at low volume.
+        """
+        sample_rate = 44100
+        duration = 8.0
+        t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+        tone_a = np.sin(2 * np.pi * 220 * t)
+        tone_b = np.sin(2 * np.pi * 329.63 * t)
+        envelope = np.clip(np.sin(np.pi * t / duration), 0, 1)
+        signal = (0.08 * tone_a + 0.05 * tone_b) * envelope
+        pcm = np.int16(signal * 32767)
+
+        file_path = Path(tempfile.gettempdir()) / "physics_modeler_soft_music.wav"
+        with wave.open(str(file_path), "wb") as wav_file:
+            wav_file.setnchannels(1)
+            wav_file.setsampwidth(2)
+            wav_file.setframerate(sample_rate)
+            wav_file.writeframes(pcm.tobytes())
+        return file_path
 
     # ------------------------------------------------------------------
     # Styling helpers
