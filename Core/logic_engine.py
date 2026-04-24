@@ -2,7 +2,9 @@ from ast import Import
 from typing import Optional
 from sympy import im, symbols, Eq, solve, diff, integrate, simplify, latex, sympify, Symbol
 from sympy import Function, Symbol
+from sympy import S
 from sympy.core.expr import Expr
+from sympy.core.relational import Relational
 
 class Logic_Engine:
 
@@ -82,8 +84,10 @@ class Logic_Engine:
 
         if not isinstance(lhs, Expr) or not isinstance(rhs, Expr):
             raise TypeError("Substitution produced non-expression equation sides")
-
-        result = simplify(lhs - rhs)
+        
+        expr_lhs = sympify(lhs)
+        expr_rhs = sympify(rhs)
+        result = simplify(expr_lhs - expr_rhs)
 
         free = result.free_symbols
         if len(free) == 1:
@@ -151,18 +155,13 @@ class Logic_Engine:
     # Utility: build an equation from a raw string (for REPL / notebook use)
     # ------------------------------------------------------------------
 
-    def parse_equation(self, lhs_str: str, rhs_str: str) -> Eq:
-        """
-        Parse two string expressions into a SymPy Eq using registered symbols
-        as the local namespace.
-
-        Example:
-            engine.parse_equation("v", "u + a*t")
-        """
+    def parse_equation(self, lhs_str: str, rhs_str: str) -> Relational:
         namespace = dict(self._symbol_registry)
+        lhs, rhs = None, None # Initialize
         try:
             lhs = sympify(lhs_str, locals=namespace)
             rhs = sympify(rhs_str, locals=namespace)
         except Exception as exc:
             raise ValueError(f"Failed to parse equation: {exc}") from exc
+        
         return Eq(lhs, rhs)
