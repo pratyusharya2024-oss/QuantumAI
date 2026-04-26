@@ -1,30 +1,22 @@
-"""
-energetics.py
-=============
-Physics Module: Energetics
-Covers: Work, Kinetic & Potential Energy, Power, Conservation Laws,
-        Collisions, Simple Harmonic Motion Energy, Thermal Energy
-Levels: Basic → Advanced
-Author: [Your Name]
-"""
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import math
 import numpy as np
 import pandas as pd
-
-# modules energetics.py
+from typing import cast
+from sympy import Eq
+from sympy import Rational
 from sympy import Symbol, Eq, symbols, sqrt
 from Core.logic_engine import Logic_Engine
 
 def register(engine: Logic_Engine) -> None:
     m, v, h, g, k, x, F, d, P, t, W = symbols('m v h g k x F d P t W')
-    engine.register_formula('kinetic_energy',        Eq(W, m * v**2 / 2))
-    engine.register_formula('gravitational_pe',      Eq(W, m * g * h))
-    engine.register_formula('elastic_pe',            Eq(W, k * x**2 / 2))
-    engine.register_formula('work_done',             Eq(W, F * d))
-    engine.register_formula('power',                 Eq(P, W / t))
+    engine.register_formula('kinetic_energy', cast(Eq, Eq(W, m * v**2 / 2)))
+    engine.register_formula('gravitational_pe', cast(Eq, Eq(W, m * g * h)))
+    engine.register_formula('elastic_pe', cast(Eq, Eq(W, k * x**2 / 2)))
+    engine.register_formula('work_done', cast(Eq, Eq(W, F * d)))
+    engine.register_formula('power', cast(Eq,Eq(P, W / t)))
 # ─────────────────────────────────────────────
 # BASIC — Work & Energy
 # ─────────────────────────────────────────────

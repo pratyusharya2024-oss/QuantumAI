@@ -1,11 +1,3 @@
-"""
-gravitation.py
-==============
-Physics Module: Gravitation & Orbital Mechanics
-Covers: Newton's law, gravitational field, orbital motion, escape velocity, satellites
-Levels: Basic → Advanced
-Author: [Your Name]
-"""
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,16 +5,16 @@ import math
 import numpy as np
 import pandas as pd
 
-# modules gravitation.py
+from typing import cast
 from sympy import Symbol, Eq, symbols, pi, sqrt
 from Core.logic_engine import Logic_Engine
  
 def register(engine: Logic_Engine) -> None:
     G, M, m, r, F, g, v, T = symbols('G M m r F g v T')
-    engine.register_formula('gravitational_force',   Eq(F, G * M * m / r**2))
-    engine.register_formula('field_strength',        Eq(g, G * M / r**2))
-    engine.register_formula('orbital_velocity',      Eq(v, sqrt(G * M / r)))
-    engine.register_formula('orbital_period',        Eq(T, 2 * pi * sqrt(r**3 / (G * M))))
+    engine.register_formula('gravitational_force', cast(Eq,Eq(F, G * M * m / r**2)))
+    engine.register_formula('field_strength', cast(Eq,Eq(g, G * M / r**2)))
+    engine.register_formula('orbital_velocity', cast(Eq,Eq(v, sqrt(G * M / r))))
+    engine.register_formula('orbital_period', cast(Eq,Eq(T, 2 * pi * sqrt(r**3 / (G * M)))))
 
 # ─────────────────────────────────────────────
 # CONSTANTS

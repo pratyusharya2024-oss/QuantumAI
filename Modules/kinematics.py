@@ -10,16 +10,16 @@ from typing import Sequence, Tuple
 import numpy as np
 import pandas as pd
 
-# modules kinematics.py
+from typing import cast
 from sympy import Symbol, Eq, symbols
 from Core.logic_engine import Logic_Engine
  
 def register(engine: Logic_Engine) -> None:
     u, v, a, t, s, g, theta = symbols('u v a t s g theta')
-    engine.register_formula('velocity',                Eq(v, u + a * t))
-    engine.register_formula('displacement',            Eq(s, u * t + (a * t**2) / 2))
-    engine.register_formula('final_velocity_squared',  Eq(v**2, u**2 + 2 * a * s))
-    engine.register_formula('displacement_avg',        Eq(s, ((u + v) / 2) * t))
+    engine.register_formula('velocity', cast(Eq,Eq(v, u + a * t)))
+    engine.register_formula('displacement', cast(Eq,Eq(s, u * t + (a * t**2) / 2)))
+    engine.register_formula('final_velocity_squared', cast(Eq,Eq(v**2, u**2 + 2 * a * s)))
+    engine.register_formula('displacement_avg', cast(Eq,Eq(s, ((u + v) / 2) * t)))
 
 DATA_FOLDER = Path.cwd() / "data"
 GRAVITY = 9.81

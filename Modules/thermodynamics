@@ -1,26 +1,19 @@
-"""
-thermodynamics.py
-Module: Thermodynamics
-Project: Automated Physics Modeler
-Covers: Ideal Gas Laws, Heat Transfer, Carnot Cycle, Entropy & Enthalpy
-Structure: Numerical (NumPy-based), fully modular functions
-"""
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 
-# modules thermodynamics.py
+from typing import cast
 from sympy import Symbol, Eq, symbols
 
 from Core.logic_engine import Logic_Engine
  
 def register(engine: Logic_Engine) -> None:
     Q, m, c, T, T1, T2, W, P, V, n, R, gamma = symbols('Q m c T T1 T2 W P V n R gamma')
-    engine.register_formula('heat_energy',           Eq(Q, m * c * (T2 - T1)))
-    engine.register_formula('ideal_gas_law',         Eq(P * V, n * R * T))
-    engine.register_formula('work_by_gas',           Eq(W, P * (V)))
-    engine.register_formula('first_law_thermo',      Eq(Q, W + (T2 - T1)))
+    engine.register_formula('heat_energy', cast(Eq,Eq(Q, m * c * (T2 - T1))))
+    engine.register_formula('ideal_gas_law', cast(Eq,Eq(P * V, n * R * T)))
+    engine.register_formula('work_by_gas', cast(Eq,Eq(W, P * (V))))
+    engine.register_formula('first_law_thermo', cast(Eq,Eq(Q, W + (T2 - T1))))
 # ─────────────────────────────────────────────
 # CONSTANTS
 # ─────────────────────────────────────────────
@@ -33,12 +26,12 @@ ABSOLUTE_ZERO = 273.15  # °C to Kelvin offset
 # UNIT HELPERS
 # ─────────────────────────────────────────────
 
-def celsius_to_kelvin(temp_c: float) -> float:
+def celsius_to_kelvin(temp_c: float) -> np.ndarray:
     """Convert Celsius to Kelvin."""
     return np.array(temp_c) + ABSOLUTE_ZERO
 
 
-def kelvin_to_celsius(temp_k: float) -> float:
+def kelvin_to_celsius(temp_k: float) -> np.ndarray:
     """Convert Kelvin to Celsius."""
     return np.array(temp_k) - ABSOLUTE_ZERO
 
@@ -417,7 +410,8 @@ def zeroth_law_check(T_A: float, T_B: float, T_C: float,
     Returns:
         True if all three are in thermal equilibrium
     """
-    return np.isclose(T_A, T_B, atol=tol) and np.isclose(T_B, T_C, atol=tol)
+    result = np.isclose(T_A, T_B, atol=tol) and np.isclose(T_B, T_C, atol=tol)
+    return bool(result)
 
 
 def third_law_entropy(T: float, S_0: float = 0.0) -> float:
