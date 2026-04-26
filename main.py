@@ -1,19 +1,21 @@
-from sympy import symbols
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from Core.logic_engine import Logic_Engine
 from Core.data_collector import DataCollector
 from Core.solver import Solver
-from Visualization.animator import Animator
 from Visualization.plotter import Plotter
-import Modules
+from Visualization.animator import Animator
+from Modules import kinematics, gravitation, energetics, thermodynamics, quantum_mechanics
 
 
-MODULE_REGISTRY: dict = {
-    "kinematics":        Modules.kinematics,
-    "gravitation":       Modules.gravitation,
-    "energetics":        Modules.energetics,
-    "thermodynamics":    Modules.thermodynamics,
-    "quantum_mechanics": Modules.quantum_mechanics,
+MODULE_REGISTRY = {
+    "kinematics":        kinematics,
+    "gravitation":       gravitation,
+    "energetics":        energetics,
+    "thermodynamics":    thermodynamics,
+    "quantum_mechanics": quantum_mechanics,
 }
 
 TIME_STEPS = 500
@@ -23,10 +25,10 @@ class PhysicsModeler:
     """
     Application entry point and pipeline orchestrator.
 
-    Coordinates the full pipeline:
+    Pipeline:
         DataCollector → LogicEngine → Solver → Terminal Output
-                                             → Plotter (optional)
-                                             → Animator (optional)
+                                             → Plotter   (optional)
+                                             → Animator  (optional)
     """
 
     def __init__(self) -> None:
@@ -35,6 +37,10 @@ class PhysicsModeler:
         self._solver    = Solver(self._engine)
         self._plotter   = Plotter()
         self._animator  = Animator()
+
+    # ------------------------------------------------------------------
+    # Application loop
+    # ------------------------------------------------------------------
 
     def run(self) -> None:
         self._print_welcome()
@@ -48,47 +54,35 @@ class PhysicsModeler:
                 print(f"\n  [Error] {exc}")
                 print("  Please try again with a different problem.\n")
 
-            if not self._ask_continue():
+            if not self._ask_yes_no("\n  Solve another problem? (y/n): "):
                 self._print_exit()
                 break
 
     # ------------------------------------------------------------------
-    # Pipeline
+    # Pipeline stages
     # ------------------------------------------------------------------
 
     def _run_pipeline(self) -> None:
-        # Stage 1 — Collect problem data from the user
+        # Stage 1 — DataCollector gathers known values, target, physics field
         data = self._collect_problem()
 
-        # Stage 2 — Register the relevant physics module into the engine
-        self._load_physics_module(data["physics_field"])
+        # Stage 2 — Load matching module → pushes formulas into LogicEngine
+        self._load_module(data["physics_field"])
 
-        # Stage 3 — Pull the rearranged formula from the engine
+        # Stage 3 — LogicEngine selects and rearranges the correct formula
         expression = self._resolve_formula(data)
 
-        # Stage 4 — Push expression + known values into the solver
-        result = self._compute_result(expression, data)
+        # Stage 4 — Solver receives expression + known values → computes answer
+        result = self._compute(expression, data)
 
-        # Stage 5 — Display the final answer
+        # Stage 5 — Print the answer in terminal
         self._display_result(result)
 
-        # Stage 6 — Optionally plot a graph
-        if self._ask_graph():
-            result_with_series = self._compute_with_time_series(expression, data)
-            self._plotter.plot(
-                dataframe=result_with_series["dataframe"],
-                target=data["target"],
-            )
-
-            # Stage 7 — Optionally animate
-            if self._ask_animation():
-                self._animator.animate(
-                    dataframe=result_with_series["dataframe"],
-                    target=data["target"],
-                    known=data["known"],
-                )
+        # Stage 6 — Ask graph → ask animation
+        self._handle_visualizations(expression, data)
 
     def _collect_problem(self) -> dict:
+        """Delegates to DataCollector to parse the word problem from terminal."""
         data = self._collector.collect()
         if not data.get("known"):
             raise ValueError("No known values were extracted from the problem.")
@@ -96,43 +90,55 @@ class PhysicsModeler:
             raise ValueError("Could not determine the target variable.")
         return data
 
-    def _load_physics_module(self, physics_field: str) -> None:
+    def _load_module(self, physics_field: str) -> None:
+        """
+        Looks up the matching module from the registry and calls register(engine),
+        which pushes all its formulas into LogicEngine.
+        """
         if physics_field not in MODULE_REGISTRY:
             raise KeyError(
-                f"Physics field '{physics_field}' has no registered module. "
+                f"No module found for field '{physics_field}'. "
                 f"Available: {list(MODULE_REGISTRY.keys())}"
             )
         MODULE_REGISTRY[physics_field].register(self._engine)
-        print(f"\n  Module loaded: {physics_field.upper()}")
+        print(f"\n  Module loaded : {physics_field.upper()}")
 
     def _resolve_formula(self, data: dict):
+        """
+        Asks LogicEngine to:
+          1. Select the right formula based on known symbols + target
+          2. Rearrange it to isolate the target variable
+        Returns the rearranged symbolic expression.
+        """
         known_symbols = set(data["known"].keys())
-        target = data["target"]
+        target        = data["target"]
 
-        formula_name = self._engine.select_formula(known_symbols, target)
-        print(f"  Formula selected: {formula_name}")
-
-        target_symbol = self._engine.get_symbol(target)
-        solutions = self._engine.rearrange(formula_name, target_symbol)
+        formula_name   = self._engine.select_formula(known_symbols, target)
+        target_symbol  = self._engine.get_symbol(target)
+        solutions      = self._engine.rearrange(formula_name, target_symbol)
 
         if not solutions:
             raise ValueError(
                 f"LogicEngine could not rearrange '{formula_name}' for '{target}'."
             )
 
-        print(f"  Rearranged expression: {target} = {solutions[0]}")
+        print(f"  Formula       : {formula_name}")
+        print(f"  Rearranged    : {target} = {solutions[0]}")
         return solutions[0]
 
-    def _compute_result(self, expression, data: dict) -> dict:
-        """Single-point solve — no time series."""
+    def _compute(self, expression, data: dict) -> dict:
+        """Single-point solve — passes expression + known values to Solver."""
         return self._solver.solve(
             expression=expression,
             known=data["known"],
             target=data["target"],
         )
 
-    def _compute_with_time_series(self, expression, data: dict) -> dict:
-        """Re-runs the solver with time_steps to produce the DataFrame for visuals."""
+    def _compute_time_series(self, expression, data: dict) -> dict:
+        """
+        Re-runs Solver with time_steps to produce a DataFrame for visualizations.
+        Requires 't' to be present in known values.
+        """
         if "t" not in data["known"]:
             raise ValueError(
                 "Cannot generate a graph — 't' (time) is not in the known values."
@@ -149,8 +155,42 @@ class PhysicsModeler:
         print("  FINAL ANSWER")
         print("=" * 60)
         print(f"  {result['target']} = {result['result']:.4f}")
-        print(f"  (Expression used: {result['expression']})")
+        print(f"  Expression used : {result['expression']}")
         print("=" * 60 + "\n")
+
+    # ------------------------------------------------------------------
+    # Visualization flow
+    # ------------------------------------------------------------------
+
+    def _handle_visualizations(self, expression, data: dict) -> None:
+        """
+        Asks the user sequentially:
+          1. Graph?    → plotter.py
+          2. Animation? → animator.py
+        Both share the same time-series DataFrame so Solver runs only once.
+        """
+        if not self._ask_yes_no("  Would you like to see a graph? (y/n): "):
+            return
+
+        try:
+            result_series = self._compute_time_series(expression, data)
+        except ValueError as exc:
+            print(f"\n  [Visualization skipped] {exc}\n")
+            return
+
+        dataframe = result_series["dataframe"]
+        target    = data["target"]
+
+        # Send to plotter
+        self._plotter.plot(dataframe=dataframe, target=target)
+
+        # Ask animation only after graph is confirmed
+        if self._ask_yes_no("  Would you like to see an animation? (y/n): "):
+            self._animator.animate(
+                dataframe=dataframe,
+                target=target,
+                known=data["known"],
+            )
 
     # ------------------------------------------------------------------
     # Terminal UI helpers
@@ -161,24 +201,17 @@ class PhysicsModeler:
         print("   Automated Physics Modeler")
         print("   Computational Research Engine v1.0")
         print("=" * 60)
-        print("  Supported fields: kinematics, gravitation,")
-        print("  energetics, thermodynamics, quantum_mechanics")
+        print("  Supported fields : kinematics, gravitation,")
+        print("                     energetics, thermodynamics,")
+        print("                     quantum_mechanics")
         print("=" * 60 + "\n")
 
     def _print_exit(self) -> None:
         print("\n  Exiting Physics Modeler. Goodbye!\n")
 
-    def _ask_continue(self) -> bool:
-        answer = input("\n  Solve another problem? (y/n): ").strip().lower()
-        return answer == "y"
-
-    def _ask_graph(self) -> bool:
-        answer = input("  Would you like to see a graph? (y/n): ").strip().lower()
-        return answer == "y"
-
-    def _ask_animation(self) -> bool:
-        answer = input("  Would you like to see an animation? (y/n): ").strip().lower()
-        return answer == "y"
+    def _ask_yes_no(self, prompt: str) -> bool:
+        """Reusable y/n prompt — returns True for 'y', False for anything else."""
+        return input(prompt).strip().lower() == "y"
 
 
 if __name__ == "__main__":
