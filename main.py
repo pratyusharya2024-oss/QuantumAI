@@ -3,7 +3,7 @@ from sympy import symbols
 from Core.logic_engine import Logic_Engine
 from Core.data_collector import DataCollector
 from Core.solver import Solver
-from Visualization.animations import Animator
+from Visualization.animator import Animator
 from Visualization.plotter import Plotter
 import Modules
 

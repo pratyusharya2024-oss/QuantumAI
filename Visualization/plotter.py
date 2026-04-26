@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib.gridspec import GridSpec
-
+from matplotlib.axes import Axes
 
 class Plotter:
     """
@@ -86,6 +86,7 @@ class Plotter:
         y_data: np.ndarray,
         dy_data: np.ndarray,
     ) -> None:
+        assert self._target is not None
         fig = plt.figure(figsize=(13, 5))
         fig.patch.set_facecolor("#0f0f1a")
         fig.suptitle(
@@ -120,7 +121,7 @@ class Plotter:
         plt.show()
 
     def _draw_primary(
-        self, ax: plt.Axes, t_data: np.ndarray, y_data: np.ndarray
+        self, ax: Axes, t_data: np.ndarray, y_data: np.ndarray
     ) -> None:
         ax.plot(
             t_data, y_data,
@@ -145,12 +146,12 @@ class Plotter:
         ax.legend(fontsize=8, labelcolor="white", facecolor="#12122a", edgecolor="#2a2a4a")
 
     def _draw_rate(
-        self, ax: plt.Axes, t_data: np.ndarray, dy_data: np.ndarray
+        self, ax: Axes, t_data: np.ndarray, dy_data: np.ndarray
     ) -> None:
         positive = dy_data >= 0
         ax.fill_between(
             t_data, dy_data,
-            where=positive,
+            where=positive.tolist(),
             color="#a78bfa",
             alpha=0.6,
             label="increasing",
@@ -158,7 +159,7 @@ class Plotter:
         )
         ax.fill_between(
             t_data, dy_data,
-            where=~positive,
+            where=(~positive).tolist(),
             color="#f87171",
             alpha=0.6,
             label="decreasing",
@@ -174,7 +175,7 @@ class Plotter:
 
     def _style_axes(
         self,
-        ax: plt.Axes,
+        ax: Axes,
         title: str,
         xlabel: str,
         ylabel: str,
