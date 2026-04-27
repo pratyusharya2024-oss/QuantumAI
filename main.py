@@ -7,15 +7,13 @@ from Core.data_collector import DataCollector
 from Core.solver import Solver
 from Visualization.plotter import Plotter
 from Visualization.animator import Animator
-from Modules import kinematics, gravitation, energetics, thermodynamics, quantum_mechanics
+from Modules import kinematics, gravitation, energetics
 
 
 MODULE_REGISTRY = {
     "kinematics":        kinematics,
     "gravitation":       gravitation,
     "energetics":        energetics,
-    "thermodynamics":    thermodynamics,
-    "quantum_mechanics": quantum_mechanics,
 }
 
 TIME_STEPS = 500
