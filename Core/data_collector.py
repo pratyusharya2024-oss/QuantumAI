@@ -43,6 +43,24 @@ VARIABLE_PATTERNS: dict[str, list[str]] = {
     "r":     ["radius", "orbital radius"],
 }
 
+TARGET_KEYWORDS: dict[str, list[str]] = {
+    "v":   ["velocity", "speed", "final velocity", "final speed", "orbital velocity"],
+    "u":   ["initial velocity", "initial speed"],
+    "a":   ["acceleration", "deceleration", "retardation"],
+    "s":   ["displacement", "distance", "travelled", "traveled"],
+    "t":   ["time", "duration"],
+    "F":   ["force"],
+    "m":   ["mass"],
+    "h":   ["height", "altitude"],
+    "KE":  ["kinetic energy"],
+    "PE":  ["potential energy"],
+    "W":   ["work"],
+    "P":   ["power"],
+    "T":   ["temperature"],
+    "g":   ["gravitational acceleration"],
+    "r":   ["radius", "orbital radius"],
+}
+
 
 class DataCollector:
 
@@ -153,11 +171,11 @@ class DataCollector:
             if idx == -1:
                 continue
             window = self._raw_problem[idx: idx + 80]
-            for symbol, phrases in VARIABLE_PATTERNS.items():
+            for symbol, keywords in TARGET_KEYWORDS.items():
                 if symbol in known:
                     continue
-                for var_phrase in phrases:
-                    if var_phrase in window:
+                for keyword in keywords:
+                    if keyword in window:
                         return symbol
 
         return self._ask_target(known)
