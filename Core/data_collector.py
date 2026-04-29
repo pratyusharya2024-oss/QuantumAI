@@ -41,6 +41,9 @@ VARIABLE_PATTERNS: dict[str, list[str]] = {
     "T":     ["temperature"],
     "h":     ["height", "altitude"],
     "r":     ["radius", "orbital radius"],
+    "G":  ["gravitational constant", "universal gravitation"],
+    "M":  ["mass of earth", "mass of the earth",
+           "mass of planet", "planet mass"],
 }
 
 TARGET_KEYWORDS: dict[str, list[str]] = {
@@ -59,6 +62,8 @@ TARGET_KEYWORDS: dict[str, list[str]] = {
     "T":   ["temperature"],
     "g":   ["gravitational acceleration"],
     "r":   ["radius", "orbital radius"],
+    "G":  ["gravitational constant"],
+    "M":  ["mass of earth"],
 }
 
 
