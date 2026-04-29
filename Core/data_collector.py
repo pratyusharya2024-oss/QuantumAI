@@ -123,9 +123,9 @@ class DataCollector:
 
     def _extract_all_numbers(self) -> list[tuple[int, float]]:
         return [
-            (m.start(), float(m.group()))
-            for m in re.finditer(r"-?\d+\.?\d*", self._raw_problem)
-        ]
+        (m.start(), float(m.group()))
+        for m in re.finditer(r"-?\d+\.?\d*(?:[eE][+-]?\d+)?", self._raw_problem)
+    ]
 
     def _find_value_near_phrase(
         self, phrase: str, numbers: list[tuple[int, float]]
