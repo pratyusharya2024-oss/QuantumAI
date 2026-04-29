@@ -26,10 +26,35 @@ PHYSICS_KEYWORDS: dict[str, list[str]] = {
 }
 
 VARIABLE_PATTERNS: dict[str, list[str]] = {
-    "u":     ["initial velocity", "initial speed"],
-    "v":     ["final velocity", "final speed"],
-    "a":     ["acceleration", "deceleration", "retardation"],
-    "t":     ["time", "duration", "seconds", "second"],
+    "u": [
+        "initial velocity",
+        "initial speed",
+        "velocity of",
+        "thrown at",   
+        "launched at", 
+    ],
+    "v": [
+        "final velocity",
+        "final speed",
+        "velocity of", 
+        "speed of",    
+        "moving at",   
+    ],
+    "a": [
+        "acceleration",
+        "accelerates at",     
+        "accelerating at",  
+        "deceleration",
+        "decelerates at",      
+        "retardation",
+    ],
+    "t": [
+        "time",
+        "duration",
+        "for",                  
+        "after", 
+        "seconds",             
+    ],
     "s":     ["displacement", "distance", "travelled", "traveled"],
     "g":     ["gravity", "gravitational acceleration"],
     "m":     ["mass"],
@@ -64,6 +89,10 @@ TARGET_KEYWORDS: dict[str, list[str]] = {
     "r":   ["radius", "orbital radius"],
     "G":  ["gravitational constant"],
     "M":  ["mass of earth"],
+}
+
+SYMBOL_ALIASES: dict[str, str] = {
+    "g": "a",
 }
 
 
@@ -110,6 +139,12 @@ class DataCollector:
         known: dict[str, float] = {}
         numbers = self._extract_all_numbers()
 
+        rest_phrases = ["from rest", "starts from rest", "at rest", "initially at rest"]
+        for phrase in rest_phrases:
+            if phrase in self._raw_problem:
+                known["u"] = 0.0
+                break
+
         for symbol, phrases in VARIABLE_PATTERNS.items():
             for phrase in phrases:
                 value = self._find_value_near_phrase(phrase, numbers)
@@ -118,6 +153,10 @@ class DataCollector:
 
         if not known:
             known = self._fallback_manual_input()
+
+        for alias, canonical in SYMBOL_ALIASES.items():
+            if alias in known and canonical not in known:
+             known[canonical] = known.pop(alias)
 
         return known
 
@@ -130,16 +169,24 @@ class DataCollector:
     def _find_value_near_phrase(
         self, phrase: str, numbers: list[tuple[int, float]]
     ) -> Optional[float]:
-        
         idx = self._raw_problem.find(phrase)
         if idx == -1:
             return None
-        search_start = idx
+
+        search_start = max(0, idx - 30)
         search_end = idx + len(phrase) + 60
-        for pos, value in numbers:
-            if search_start <= pos <= search_end:
-                return value
-        return None
+
+        candidates = [
+            (abs(pos - idx), value)
+            for pos, value in numbers
+            if search_start <= pos <= search_end
+        ]
+
+        if not candidates:
+            return None
+
+        candidates.sort(key=lambda x: x[0])
+        return candidates[0][1]
 
     def _fallback_manual_input(self) -> dict[str, float]:
         print("\n  Could not extract values automatically.")
