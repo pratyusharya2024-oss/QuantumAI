@@ -13,7 +13,7 @@ from Modules import kinematics, gravitation, energetics
 MODULE_REGISTRY = {
     "kinematics":        kinematics,
     "gravitation":       gravitation,
-    "energetics":        energetics,
+    "energetics":        energetics,    
 }
 
 TIME_STEPS = 500

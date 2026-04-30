@@ -61,7 +61,12 @@ VARIABLE_PATTERNS: dict[str, list[str]] = {
     "F":     ["force"],
     "KE":    ["kinetic energy"],
     "PE":    ["potential energy"],
-    "W":     ["work"],
+    "W": [
+        "work of",
+        "work done",         
+        "total work",        
+        "energy transferred",
+    ],    
     "P":     ["power"],
     "T":     ["temperature"],
     "h":     ["height", "altitude"],
@@ -82,7 +87,16 @@ TARGET_KEYWORDS: dict[str, list[str]] = {
     "h":   ["height", "altitude"],
     "KE":  ["kinetic energy"],
     "PE":  ["potential energy"],
-    "W":   ["work"],
+
+    "W": [
+        "work",     
+        "work done",          
+        "total work",         
+        "total work done",    
+        "energy transferred", 
+        "work energy",        
+    ],
+
     "P":   ["power"],
     "T":   ["temperature"],
     "g":   ["gravitational acceleration"],
