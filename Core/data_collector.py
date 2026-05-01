@@ -220,7 +220,7 @@ class DataCollector:
             if not symbol:
                 break
             if symbol not in VARIABLE_PATTERNS:
-                print(f"  '{symbol}' is not a recognised symbol. Try again.")
+                print(f"  '{symbol}' is not a recognized symbol. Try again.")
                 continue
             try:
                 value = float(input(f"  Value for '{symbol}': ").strip())
@@ -260,7 +260,7 @@ class DataCollector:
             target = input("  What are you solving for? ").strip()
             if target in VARIABLE_PATTERNS:
                 return target
-            print(f"  '{target}' not recognised. Choose from: {', '.join(unknown_symbols)}")
+            print(f"  '{target}' not recognized. Choose from: {', '.join(unknown_symbols)}")
 
     # ------------------------------------------------------------------
     # Physics field identification
@@ -289,4 +289,4 @@ class DataCollector:
             field = input("  Enter the physics field: ").strip().lower()
             if field in fields:
                 return field
-            print(f"  '{field}' not recognised. Choose from: {', '.join(fields)}")
+            print(f"  '{field}' not recognized. Choose from: {', '.join(fields)}")
